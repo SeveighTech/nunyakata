@@ -6,7 +6,7 @@ authentication options, and response handling.
 """
 
 import os
-from nunyakata import NaloSolutionsClient
+from nunyakata import NaloSolutions
 
 
 def main():
