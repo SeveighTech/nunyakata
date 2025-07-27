@@ -733,11 +733,11 @@ class NaloSolutions:
         self, title: str, options: List[str], footer: Optional[str] = None
     ) -> str:
         """Create a USSD menu."""
-        menu = f"{title}\\n"
+        menu = f"{title}\n"
         for i, option in enumerate(options, 1):
-            menu += f"{i}. {option}\\n"
+            menu += f"{i}. {option}\n"
         if footer:
-            menu += f"\\n{footer}"
+            menu += f"\n{footer}"
         return menu
 
     def create_ussd_response(
