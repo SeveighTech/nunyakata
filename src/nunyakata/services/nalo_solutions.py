@@ -961,38 +961,39 @@ class NaloSolutions:
     ) -> Dict[str, Any]:
         """Send email with file attachments using form data."""
         files = {}
+        try:
+            # Process attachments
+            for i, attachment_path in enumerate(attachments):
+                try:
+                    with open(attachment_path, "rb") as f:
+                        files["attach_file"] = f.read()
+                except FileNotFoundError:
+                    raise ValueError(f"Attachment file not found: {attachment_path}")
 
-        # Process attachments
-        for i, attachment_path in enumerate(attachments):
-            try:
-                with open(attachment_path, "rb") as f:
-                    files["attach_file"] = f.read()
-            except FileNotFoundError:
-                raise ValueError(f"Attachment file not found: {attachment_path}")
+            # Convert email_data for form submission
+            form_data = email_data.copy()
 
-        # Convert email_data for form submission
-        form_data = email_data.copy()
+            # Convert emailTo list to individual fields for form data
+            if isinstance(form_data.get("emailTo"), list):
+                if len(form_data["emailTo"]) == 1:
+                    form_data["emailTo"] = form_data["emailTo"][0]
+                else:
+                    # For multiple recipients in form data, use comma-separated string
+                    form_data["emailTo"] = ",".join(form_data["emailTo"])
 
-        # Convert emailTo list to individual fields for form data
-        if isinstance(form_data.get("emailTo"), list):
-            if len(form_data["emailTo"]) == 1:
-                form_data["emailTo"] = form_data["emailTo"][0]
-            else:
-                # For multiple recipients in form data, use comma-separated string
-                form_data["emailTo"] = ",".join(form_data["emailTo"])
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+            }
 
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-        }
-
-        return self._make_request(
-            "POST",
-            self.email_base_url,
-            data=form_data,
-            files=files,
-            headers=headers,
-        )
-
+            return self._make_request(
+                "POST",
+                self.email_base_url,
+                data=form_data,
+                files=files,
+                headers=headers,
+            )
+        finally:
+            files.clear()
     def send_html_email(
         self,
         to_email: Union[str, List[str]],
