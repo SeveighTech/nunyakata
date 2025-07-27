@@ -431,7 +431,7 @@ def main():
 
     # Example 4: Using NaloSolutionsClient utilities
     print("4. Using NaloSolutionsClient USSD utilities:")
-    client = NaloSolutionsClient()
+    client = NaloSolutions()
 
     # Create a menu
     menu = client.create_ussd_menu(
