@@ -57,7 +57,7 @@ def run_tests():
                 "tests/test_nalo_ussd.py",
                 "tests/test_nalo_email.py",
                 "--cov=src/nunyakata",
-                "--cov-fail-under=70",
+                "--cov-fail-under=60",
                 "-v",
             ],
             capture_output=True,

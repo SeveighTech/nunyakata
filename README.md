@@ -297,7 +297,7 @@ MIT License - see LICENSE file for details.
 - **Documentation**: See `docs/` directory
 - **Examples**: See `examples/` directory
 - **Issues**: GitHub Issues
-- **Email**: etsejoey@outlook.com
+- **Email**: nunyakata@seveightech.com
 
 ## Roadmap
 

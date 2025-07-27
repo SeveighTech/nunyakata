@@ -322,7 +322,7 @@ The package is **production-ready** for Nalo Solutions integration and provides 
 - **Examples**: `examples/` directory
 - **Configuration**: `.env.example` template
 - **Issues**: GitHub repository
-- **Contact**: etsejoey@outlook.com
+- **Contact**: nunyakata@seveightech.com
 
 ---
 

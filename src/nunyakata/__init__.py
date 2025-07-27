@@ -5,9 +5,9 @@ This package provides a unified interface to various Ghana-specific services
 and APIs, making it easier for developers to integrate with Ghanaian services.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "Joseph"
-__email__ = "etsejoey@outlook.com"
+__email__ = "nunyakata@seveightech.com"
 
 from .client import NunyakataClient
 from .services.nalo_solutions import NaloSolutions
@@ -18,7 +18,7 @@ from .config import (
     create_nalo_client,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "NunyakataClient",

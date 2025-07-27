@@ -82,7 +82,7 @@ class TestNaloUSSDAPI:
         request_data = {
             "USERID": "test_userid",
             "MSISDN": "233501234567",
-            "USERDATA": "999",  # Invalid option to trigger error path
+            "USERDATA": "1",
             "MSGTYPE": False,  # Subsequent request
             "NETWORK": "MTN",
             "SESSIONID": "nonexistent_session",  # Session doesn't exist
@@ -92,8 +92,10 @@ class TestNaloUSSDAPI:
 
         assert "USERID" in response
         assert "MSG" in response
-        # For nonexistent session, it will create a new one and process the invalid input
-        assert "Invalid" in response["MSG"] or "Demo Balance" in response["MSG"]
+        assert response["MSGTYPE"] is False  # End session
+        assert (
+            "Session expired" in response["MSG"] or "Session error" in response["MSG"]
+        )
 
     def test_create_ussd_menu_basic(self, nalo_client):
         """Test basic USSD menu creation."""
