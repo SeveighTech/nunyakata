@@ -1,16 +1,10 @@
 """
-Pytest configura        "sms": {
-            "sender_id": "TEST_SENDER",
-            "username": "test_user",
-            "password": "test_pass",
-            "auth_key": None  # Set to None so username/password takes precedence
-        },nd fixtures for nunyakata tests.
+Pytest configuration and fixtures for nunyakata tests.
 """
 
 import pytest
 import requests_mock
 
-from nunyakata.client import NunyakataClient
 from nunyakata.services.nalo_solutions import NaloSolutions
 
 
@@ -60,12 +54,6 @@ def nalo_client(nalo_config):
 def nalo_client_with_auth_key(nalo_config):
     """NaloSolutions client instance with auth_key configuration."""
     return NaloSolutions(nalo_config)
-
-
-@pytest.fixture
-def nunyakata_client():
-    """Main NunyakataClient instance for testing."""
-    return NunyakataClient()
 
 
 @pytest.fixture

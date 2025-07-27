@@ -49,41 +49,81 @@ NALO_MERCHANT_ID=your_merchant_id
 3. Use the client:
 
 ```python
-from nunyakata import load_nalo_client_from_env
+from nunyakata import NaloSolutions, create_nalo_client
 
-# Automatically loads credentials from environment
-client = load_nalo_client_from_env()
+# Method 1: Using configuration dictionary
+config = {
+    "sms": {
+        "username": "your_username",
+        "password": "your_password",
+        "sender_id": "YOUR_SENDER_ID"
+    },
+    "payment": {
+        "merchant_id": "your_merchant_id",
+        "username": "your_username",
+        "password": "your_password"
+    },
+    "email": {
+        "username": "your_username",
+        "password": "your_password",
+        "from_email": "sender@example.com"
+    }
+}
+
+client = NaloSolutions(config)
 
 # Send SMS
 response = client.send_sms("233501234567", "Hello Ghana!")
-print(client.explain_sms_response(response))
 
 # Make payment
 payment_response = client.make_payment(
-    order_id="ORDER_123",
-    key="1234",
-    phone_number="233501234567",
+    amount=10.00,
+    customer_number="233501234567",
+    customer_name="John Doe",
     item_desc="Product purchase",
-    amount="10.00",
-    network="MTN",
-    customer_name="John Doe"
+    order_id="ORDER_123",
+    payby="MTN",
+    callback_url="https://yoursite.com/callback"
 )
+
+# Send email
+email_response = client.send_email(
+    to_email="recipient@example.com",
+    subject="Test Email",
+    message="Hello from Ghana!"
+)
+
+# Handle USSD requests (for webhook endpoints)
+ussd_response = client.handle_ussd_request({
+    "USERID": "test_user",
+    "MSISDN": "233501234567",
+    "USERDATA": "",
+    "MSGTYPE": True,
+    "SESSIONID": "session_123"
+})
 ```
 
 ### Method 2: Direct Initialization
 
 ```python
-from nunyakata import NaloSolutionsClient
+from nunyakata import NaloSolutions
 
-client = NaloSolutionsClient(
+client = NaloSolutions(
     # SMS credentials
-    sms_auth_key="your_auth_key_here",
-    sms_source="YOUR_SENDER_ID",
+    sms_username="your_username",
+    sms_password="your_password",
+    sms_sender_id="YOUR_SENDER_ID",
 
     # Payment credentials
     payment_username="your_username",
     payment_password="your_password",
-    merchant_id="your_merchant_id"
+    payment_merchant_id="your_merchant_id",
+
+    # Email credentials
+    email_username="your_email_username",
+    email_password="your_email_password",
+    email_from_email="sender@example.com"
+)
 )
 ```
 
@@ -153,39 +193,45 @@ Detailed API documentation available in the `docs/` directory:
 See `.env.example` for all available configuration options:
 
 ```env
-# Required for SMS
-NALO_SMS_AUTH_KEY=your_auth_key
-NALO_SMS_SOURCE=YOUR_SENDER_ID
+# SMS Configuration
+NALO_SMS_USERNAME=your_sms_username
+NALO_SMS_PASSWORD=your_sms_password
+NALO_SMS_SENDER_ID=YOUR_SENDER_ID
 
-# Required for Payments
-NALO_PAYMENT_USERNAME=your_username
-NALO_PAYMENT_PASSWORD=your_password
-NALO_MERCHANT_ID=your_merchant_id
+# Payment Configuration
+NALO_PAYMENT_USERNAME=your_payment_username
+NALO_PAYMENT_PASSWORD=your_payment_password
+NALO_PAYMENT_MERCHANT_ID=your_merchant_id
 
-# Required for Email
-NALO_EMAIL_AUTH_KEY=your_email_auth_key
-# OR
+# Email Configuration
 NALO_EMAIL_USERNAME=your_email_username
 NALO_EMAIL_PASSWORD=your_email_password
+NALO_EMAIL_FROM_EMAIL=sender@example.com
+NALO_EMAIL_FROM_NAME=Your Name
 
-# Optional
+# USSD Configuration
+NALO_USSD_USERID=your_ussd_userid
+NALO_USSD_MSISDN=233501234567
+
+# Optional Callbacks
 PAYMENT_CALLBACK_URL=https://yoursite.com/webhooks/payment
 SMS_DELIVERY_CALLBACK_URL=https://yoursite.com/webhooks/sms
+EMAIL_CALLBACK_URL=https://yoursite.com/webhooks/email
 ```
 
 ### Configuration Validation
 
 ```python
-from nunyakata import validate_env_config, get_env_config
+from nunyakata import NaloSolutions
 
-# Check if configuration is valid
-is_valid, missing = validate_env_config()
-if not is_valid:
-    print(f"Missing variables: {missing}")
+# Initialize client with configuration
+config = {
+    "sms": {"username": "test", "password": "test"},
+    "payment": {"merchant_id": "123", "username": "test", "password": "test"}
+}
 
-# Get current configuration status
-config = get_env_config()
-print(f"Available services: {config['services']}")
+client = NaloSolutions(config)
+print("Client initialized successfully!")
 ```
 
 ## Development
@@ -280,8 +326,8 @@ This project uses automated publishing through GitHub Actions. To release:
 
 Our comprehensive test suite includes:
 
-- ✅ **63 tests** with **100% pass rate**
-- ✅ **85% code coverage** on core functionality
+- ✅ **56 tests** with **100% pass rate**
+- ✅ **66% code coverage** on core functionality
 - ✅ All four Nalo APIs (Payments, SMS, USSD, Email)
 - ✅ Error handling and edge cases
 - ✅ Network resilience testing
