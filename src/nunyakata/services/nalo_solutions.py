@@ -4,7 +4,6 @@ Simple implementation of NaloSolutions for testing.
 
 import requests
 import hashlib
-import json
 from typing import Dict, Any, Optional, List, Literal, Union
 from urllib.parse import urlencode
 
@@ -43,9 +42,10 @@ class NaloSolutions:
         """Initialize from configuration dictionary."""
         # Payment configuration
         payment_config = config.get("payment", {})
-        self.payment_public_key = payment_config.get("public_key")
-        self.payment_private_key = payment_config.get("private_key")
-        self.payment_environment = payment_config.get("environment", "sandbox")
+        self.payment_merchant_id = payment_config.get("merchant_id")
+        self.payment_username = payment_config.get("username")
+        self.payment_password = payment_config.get("password")
+        self.payment_environment = payment_config.get("environment", "production")
 
         # SMS configuration
         sms_config = config.get("sms", {})
@@ -73,10 +73,14 @@ class NaloSolutions:
 
     def _init_from_kwargs(self, kwargs):
         """Initialize from keyword arguments."""
+        # Initialize empty config for URL setting
+        self.config = {}
+
         # Payment parameters
-        self.payment_public_key = kwargs.get("payment_public_key")
-        self.payment_private_key = kwargs.get("payment_private_key")
-        self.payment_environment = kwargs.get("payment_environment", "sandbox")
+        self.payment_merchant_id = kwargs.get("payment_merchant_id")
+        self.payment_username = kwargs.get("payment_username")
+        self.payment_password = kwargs.get("payment_password")
+        self.payment_environment = kwargs.get("payment_environment", "production")
 
         # SMS parameters
         self.sms_username = kwargs.get("sms_username")
@@ -101,33 +105,50 @@ class NaloSolutions:
 
     def _set_api_urls(self):
         """Set API URLs based on environment."""
-        if self.payment_environment == "production":
-            self.payment_base_url = "https://api.nalosolutions.com/payment"
-        else:
-            self.payment_base_url = "https://sandbox.nalosolutions.com/payment"
+        # Payment API - always uses production endpoint according to docs
+        self.payment_base_url = "https://api.nalosolutions.com/payplus/api"
 
-        # SMS and Email APIs
-        self.sms_base_url = "https://api.nalosolutions.com/sms"
-        self.email_base_url = "https://api.nalosolutions.com/sendemail"
+        # SMS and Email APIs - using correct defaults from API documentation
+        base_url = self.config.get("sms", {}).get(
+            "base_url", "https://sms.nalosolutions.com"
+        )
+        # GET method uses /send-message/, POST uses /send-message/ (same endpoint with trailing slash)
+        self.sms_base_url_get = (
+            f"{base_url}/smsbackend/clientapi/Resl_Nalo/send-message"
+        )
+        self.sms_base_url_post = f"{base_url}/smsbackend/Resl_Nalo/send-message/"
+        # Email API uses the same base but different endpoint
+        self.email_base_url = f"{base_url}/smsbackend/clientapi/Nal_resl/send-email/"
 
     def _make_request(self, method: str, url: str, **kwargs) -> Dict[str, Any]:
         """Make HTTP request and handle response."""
         try:
             response = self.session.request(method, url, **kwargs)
 
-            # For successful responses, return the JSON
+            # For successful responses, try to return JSON
             if response.status_code < 400:
-                return response.json()
+                try:
+                    return response.json()
+                except ValueError:
+                    # If JSON parsing fails, return the raw text response
+                    return {
+                        "status": "success",
+                        "message": "Response received",
+                        "raw_response": response.text.strip(),
+                        "status_code": response.status_code,
+                    }
 
             # For error responses, try to get the JSON error message
             try:
                 error_data = response.json()
                 return error_data
             except ValueError:
-                # If JSON parsing fails, create a generic error response
+                # If JSON parsing fails, create a response with the raw text
                 return {
                     "status": "error",
                     "message": f"Request failed: {response.status_code} {response.reason}",
+                    "raw_response": response.text.strip(),
+                    "status_code": response.status_code,
                 }
 
         except requests.exceptions.Timeout:
@@ -144,22 +165,28 @@ class NaloSolutions:
     def make_payment(
         self,
         amount: float,
-        phone_number: str,
-        reference: str,
-        description: Optional[str] = None,
-        callback_url: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        customer_number: str,
+        customer_name: str,
+        item_desc: str,
+        order_id: str,
+        payby: Literal["MTN", "AIRTELTIGO", "VODAFONE"],
+        callback_url: str,
+        new_voda_payment: bool = False,
+        is_ussd: bool = False,
     ) -> Dict[str, Any]:
         """
-        Process a mobile money payment.
+        Process a mobile money payment using Nalo PayPlus API.
 
         Args:
-            amount: Payment amount
-            phone_number: Customer phone number
-            reference: Payment reference
-            description: Payment description
+            amount: Payment amount in GHS
+            customer_number: Customer phone number in format 233xxxxxxxxx
+            customer_name: Name of the payment authorizer
+            item_desc: Description of purchased item/service
+            order_id: Unique payment order ID
+            payby: Network operator (MTN, AIRTELTIGO, VODAFONE)
             callback_url: URL to receive payment status callbacks
-            metadata: Additional payment metadata
+            new_voda_payment: Use new Vodafone USSD payment (Vodafone only)
+            is_ussd: Whether request is from NALO USSD extension
 
         Returns:
             Payment response dictionary
@@ -167,34 +194,145 @@ class NaloSolutions:
         # Validate inputs
         if not amount or amount <= 0:
             raise ValueError("Amount must be greater than 0")
-        if not phone_number:
-            raise ValueError("Phone number must be provided")
-        if not reference:
-            raise ValueError("Reference must be provided")
+        if not customer_number:
+            raise ValueError("Customer number must be provided")
+        if not customer_name:
+            raise ValueError("Customer name must be provided")
+        if not item_desc:
+            raise ValueError("Item description must be provided")
+        if not order_id:
+            raise ValueError("Order ID must be provided")
+        if payby not in ["MTN", "AIRTELTIGO", "VODAFONE"]:
+            raise ValueError("payby must be one of: MTN, AIRTELTIGO, VODAFONE")
+        if not callback_url:
+            raise ValueError("Callback URL must be provided")
 
-        # Generate secret hash
-        hash_string = f"{amount}{phone_number}{reference}{self.payment_private_key}"
-        secret_hash = hashlib.md5(hash_string.encode()).hexdigest()
+        # Check authentication
+        if not (
+            self.payment_merchant_id and self.payment_username and self.payment_password
+        ):
+            raise ValueError(
+                "Payment credentials (merchant_id, username, password) must be provided"
+            )
 
-        # Prepare payment data
+        # Generate random 4-digit key
+        import random
+
+        key = f"{random.randint(1000, 9999)}"
+
+        # Generate secret according to API docs: md5(username + key + md5(password))
+        password_hash = hashlib.md5(self.payment_password.encode()).hexdigest()
+        secret_string = f"{self.payment_username}{key}{password_hash}"
+        secret = hashlib.md5(secret_string.encode()).hexdigest()
+
+        # Prepare payment data according to API documentation
         payment_data = {
-            "public_key": self.payment_public_key,
-            "amount": amount,
-            "phone_number": phone_number,
-            "reference": reference,
-            "secret_hash": secret_hash,
+            "merchant_id": self.payment_merchant_id,
+            "key": key,
+            "secrete": secret,  # Note: API uses 'secrete' not 'secret'
+            "order_id": order_id,
+            "customerName": customer_name,
+            "amount": str(amount),  # API expects string
+            "item_desc": item_desc,
+            "customerNumber": customer_number,
+            "callback": callback_url,
+            "payby": payby,
         }
 
-        if description:
-            payment_data["description"] = description
-        if callback_url:
-            payment_data["callback_url"] = callback_url
-        if metadata:
-            payment_data["metadata"] = metadata
+        # Add optional parameters
+        if new_voda_payment and payby == "VODAFONE":
+            payment_data["newVodaPayment"] = True
+        if is_ussd:
+            payment_data["isussd"] = 1
 
         # Make payment request
-        url = f"{self.payment_base_url}/request-payment"
-        return self._make_request("POST", url, json=payment_data)
+        return self._make_request("POST", self.payment_base_url, json=payment_data)
+
+    def make_simple_payment(
+        self,
+        amount: float,
+        phone_number: str,
+        customer_name: str,
+        description: str,
+        callback_url: str,
+        network: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Simplified payment method with automatic network detection and order ID generation.
+
+        Args:
+            amount: Payment amount in GHS
+            phone_number: Customer phone number (233xxxxxxxxx format)
+            customer_name: Name of the customer
+            description: Description of the payment
+            callback_url: URL to receive payment callbacks
+            network: Network operator (auto-detected if not provided)
+
+        Returns:
+            Payment response dictionary
+        """
+        import uuid
+        import time
+
+        # Auto-detect network if not provided
+        if not network:
+            if (
+                phone_number.startswith("233024")
+                or phone_number.startswith("233054")
+                or phone_number.startswith("233055")
+            ):
+                network = "MTN"
+            elif phone_number.startswith("233020") or phone_number.startswith("233050"):
+                network = "VODAFONE"
+            elif (
+                phone_number.startswith("233027")
+                or phone_number.startswith("233057")
+                or phone_number.startswith("233026")
+                or phone_number.startswith("233056")
+            ):
+                network = "AIRTELTIGO"
+            else:
+                network = "MTN"  # Default to MTN
+
+        # Generate unique order ID
+        order_id = f"ORDER_{int(time.time())}_{str(uuid.uuid4())[:8]}"
+
+        return self.make_payment(
+            amount=amount,
+            customer_number=phone_number,
+            customer_name=customer_name,
+            item_desc=description,
+            order_id=order_id,
+            payby=network,  # type: ignore
+            callback_url=callback_url,
+        )
+
+    def handle_payment_callback(self, callback_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle payment callback from Nalo PayPlus API.
+
+        Args:
+            callback_data: Callback data received from Nalo
+
+        Returns:
+            Standard callback response
+        """
+        # Validate callback data
+        required_fields = ["Timestamp", "Status", "InvoiceNo", "Order_id"]
+        if not all(field in callback_data for field in required_fields):
+            return {"Response": "ERROR", "message": "Invalid callback data"}
+
+        # Process the callback (you can add custom logic here)
+        status = callback_data.get("Status", "").upper()
+        if status in ["PAID", "ACCEPTED"]:
+            # Payment successful - add your business logic here
+            pass
+        elif status == "FAILED":
+            # Payment failed - add your business logic here
+            pass
+
+        # Return standard callback response
+        return {"Response": "OK"}
 
     # === SMS SERVICES ===
 
@@ -231,99 +369,365 @@ class NaloSolutions:
         if not ((self.sms_username and self.sms_password) or self.sms_auth_key):
             raise ValueError("Authentication credentials must be provided")
 
-        # Prepare SMS data
-        sms_data = {
-            "phone": phone_number,
-            "msg": message,
-            "sendid": sender_id or self.sms_sender_id,
-        }
-
-        # Add authentication
-        if self.sms_auth_key:
-            sms_data["authkey"] = self.sms_auth_key
-        else:
-            sms_data["userid"] = self.sms_username
-            sms_data["password"] = self.sms_password
-
         if method == "GET":
+            # GET method - prepare SMS data according to actual API documentation
+            sms_data = {
+                "destination": phone_number,
+                "message": message,
+                "source": sender_id or self.sms_sender_id,
+                "type": "0",  # 0 for text messages
+                "dlr": "1",  # 1 for delivery reports
+            }
+
+            # Add authentication for GET
+            if self.sms_auth_key:
+                sms_data["key"] = self.sms_auth_key
+            else:
+                sms_data["username"] = self.sms_username
+                sms_data["password"] = self.sms_password
+
             # Send as query parameters
-            url = f"{self.sms_base_url}/?" + urlencode(sms_data)
-            return self._make_request("GET", url)
+            url = f"{self.sms_base_url_get}?" + urlencode(sms_data)
+            response = self._make_request("GET", url)
+
+            # Parse GET response format: "1701|233265542141|api.0039013.20250127.1753576627.8301058"
+            if response.get("status") == "success" and "raw_response" in response:
+                parts = response["raw_response"].split("|")
+                if len(parts) >= 3:
+                    return {
+                        "status": "success",
+                        "message": "SMS sent successfully",
+                        "code": parts[0],
+                        "phone_number": parts[1],
+                        "message_id": parts[2],
+                        "raw_response": response["raw_response"],
+                    }
+                else:
+                    return {
+                        "status": "success",
+                        "message": "SMS sent successfully",
+                        "raw_response": response["raw_response"],
+                    }
+            return response
         else:
-            # Send as form data
-            return self._make_request("POST", self.sms_base_url + "/", data=sms_data)
+            # POST method - different parameter names according to API docs
+            sms_data = {
+                "msisdn": phone_number,  # POST uses 'msisdn' not 'destination'
+                "message": message,
+                "sender_id": sender_id
+                or self.sms_sender_id,  # POST uses 'sender_id' not 'source'
+            }
+
+            # Add authentication for POST
+            if self.sms_auth_key:
+                sms_data["key"] = self.sms_auth_key
+            else:
+                sms_data["username"] = self.sms_username
+                sms_data["password"] = self.sms_password
+
+            # Send as raw JSON string for POST (as shown in API docs)
+            import json
+
+            json_payload = json.dumps(sms_data)
+            headers = {"Content-Type": "application/json"}
+            response = self._make_request(
+                "POST", self.sms_base_url_post, data=json_payload, headers=headers
+            )
+
+            # Parse POST JSON response format: {"status": "1701", "job_id": "api.0000011.20221222.0000003", "msisdn": "233244071872"}
+            if response.get("status") == "success" and "raw_response" in response:
+                try:
+                    import json
+
+                    json_response = json.loads(response["raw_response"])
+                    return {
+                        "status": "success",
+                        "message": "SMS sent successfully",
+                        "code": json_response.get("status"),
+                        "phone_number": json_response.get("msisdn"),
+                        "message_id": json_response.get("job_id"),
+                        "raw_response": response["raw_response"],
+                    }
+                except (json.JSONDecodeError, KeyError):
+                    return {
+                        "status": "success",
+                        "message": "SMS sent successfully",
+                        "raw_response": response["raw_response"],
+                    }
+            elif response.get("status") and response.get("job_id"):
+                # Direct JSON response
+                return {
+                    "status": "success",
+                    "message": "SMS sent successfully",
+                    "code": response.get("status"),
+                    "phone_number": response.get("msisdn"),
+                    "message_id": response.get("job_id"),
+                    "raw_response": str(response),
+                }
+            return response
 
     # === USSD SERVICES ===
 
-    def handle_ussd_request(self, session_data: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_ussd_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Handle USSD session request.
+        Handle USSD session request according to Nalo USSD API format.
+
+        Expected request format:
+        {
+            "USERID": "NALOTest",
+            "MSISDN": "233XXXXXXXXX",
+            "USERDATA": "user_input",
+            "MSGTYPE": true/false,  # true=initial, false=subsequent
+            "NETWORK": "MTN/VODAFONE/AIRTELTIGO",
+            "SESSIONID": "unique_session_id"
+        }
 
         Args:
-            session_data: USSD session data
+            request_data: USSD request data from Nalo API
 
         Returns:
-            USSD response dictionary
+            USSD response dictionary in Nalo format
         """
-        sessionid = session_data.get("sessionid", "")
-        msisdn = session_data.get("msisdn", "")
-        msg = session_data.get("msg", "")
-        msgtype = session_data.get("msgtype", True)
-
-        # Validate session data
-        if not sessionid:
-            return self.create_ussd_response(
-                "Session error occurred", continue_session=False
-            )
-
-        # Handle session timeout
-        if not msgtype:
-            return self.create_ussd_response(
-                "Session has ended. Thank you!", continue_session=False
-            )
-
-        # Get or create session
-        session = self.get_ussd_session(sessionid)
-
-        # Handle initial request (empty message)
-        if not msg:
-            welcome_menu = self.create_ussd_menu(
-                "Welcome to Nalo Services",
-                ["Check Balance", "Send Money", "Buy Airtime", "Help"],
-            )
-            return self.create_ussd_response(
-                welcome_menu, continue_session=True, sessionid=sessionid
-            )
-
-        # Handle menu selection
         try:
-            selection = int(msg)
-            if selection in [1, 2, 3, 4]:
-                if selection == 1:
-                    response_msg = "Your balance is GHS 100.00"
-                    return self.create_ussd_response(
-                        response_msg, continue_session=False, sessionid=sessionid
-                    )
-                elif selection == 4:
-                    response_msg = "For help, call 123. Thank you!"
-                    return self.create_ussd_response(
-                        response_msg, continue_session=False, sessionid=sessionid
-                    )
-                else:
-                    response_msg = "Service not available. Thank you!"
-                    return self.create_ussd_response(
-                        response_msg, continue_session=False, sessionid=sessionid
-                    )
-            else:
-                error_msg = "Invalid selection. Please try again."
-                return self.create_ussd_response(
-                    error_msg, continue_session=False, sessionid=sessionid
+            # Extract required parameters according to Nalo API documentation
+            userid = request_data.get("USERID", "")
+            msisdn = request_data.get("MSISDN", "")
+            userdata = request_data.get("USERDATA", "")
+            msgtype = request_data.get("MSGTYPE", True)
+            network = request_data.get("NETWORK", "")
+            sessionid = request_data.get("SESSIONID", "")
+
+            # Validate required parameters
+            if not userid:
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, "Invalid USERID", False
                 )
-        except ValueError:
-            error_msg = "Invalid input. Please enter a number."
-            return self.create_ussd_response(
-                error_msg, continue_session=False, sessionid=sessionid
+
+            if not sessionid:
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, "Session error occurred", False
+                )
+
+            # Check if this is an initial dial (MSGTYPE = true)
+            if msgtype:
+                # Initial dial - create new session
+                self._init_ussd_session(sessionid)
+                return self._handle_initial_ussd_request(
+                    userid, msisdn, userdata, network, sessionid
+                )
+            else:
+                # Subsequent dial - handle based on session state
+                return self._handle_subsequent_ussd_request(
+                    userid, msisdn, userdata, network, sessionid
+                )
+
+        except Exception:
+            # Handle any unexpected errors
+            return self._create_nalo_ussd_response(
+                request_data.get("USERID", ""),
+                request_data.get("MSISDN", ""),
+                request_data.get("USERDATA", ""),
+                "Technical difficulties encountered. Please try again.",
+                False,
             )
+
+    def _handle_initial_ussd_request(
+        self, userid: str, msisdn: str, userdata: str, network: str, sessionid: str
+    ) -> Dict[str, Any]:
+        """Handle initial USSD request (MSGTYPE = true)."""
+        # Create welcome menu - this is a generic demo menu
+        welcome_msg = (
+            "Welcome to USSD Demo\n"
+            "Choose an option:\n"
+            "1. Check Balance\n"
+            "2. Account Info\n"
+            "3. Services\n"
+            "4. Settings\n"
+            "0. Help"
+        )
+
+        # Update session with initial state
+        self.update_ussd_session(
+            sessionid,
+            {"stage": 0, "msisdn": msisdn, "network": network, "userid": userid},
+        )
+
+        return self._create_nalo_ussd_response(
+            userid, msisdn, userdata, welcome_msg, True
+        )
+
+    def _handle_subsequent_ussd_request(
+        self, userid: str, msisdn: str, userdata: str, network: str, sessionid: str
+    ) -> Dict[str, Any]:
+        """Handle subsequent USSD requests (MSGTYPE = false)."""
+        # Get current session
+        session = self.get_ussd_session(sessionid)
+        current_stage = session.get("stage", 0)
+
+        if current_stage == 0:
+            # Main menu selection
+            return self._handle_main_menu_selection(
+                userid, msisdn, userdata, network, sessionid
+            )
+        elif current_stage == 1:
+            # Sub-menu handling - delegate to generic service handler
+            service = session.get("data", {}).get("service", "")
+            return self._handle_service_menu(
+                userid, msisdn, userdata, network, sessionid, service
+            )
+        elif current_stage == 2:
+            # Final processing - generic demo response
+            msg = (
+                "Transaction processed successfully!\nThank you for using our service."
+            )
+            self.clear_ussd_session(sessionid)
+            return self._create_nalo_ussd_response(userid, msisdn, userdata, msg, False)
+        else:
+            # Invalid stage - reset session
+            self.clear_ussd_session(sessionid)
+            return self._create_nalo_ussd_response(
+                userid, msisdn, userdata, "Session expired. Please try again.", False
+            )
+
+    def _handle_service_menu(
+        self,
+        userid: str,
+        msisdn: str,
+        userdata: str,
+        network: str,
+        sessionid: str,
+        service: str,
+    ) -> Dict[str, Any]:
+        """Handle specific service menu selections - to be overridden by user implementations."""
+        # This is a generic handler that users can override for their specific business logic
+        if service == "services":
+            try:
+                selection = int(userdata.strip())
+                if selection == 1:
+                    msg = "Service A selected\nThis is a demo response.\nOverride this method for custom logic."
+                elif selection == 2:
+                    msg = "Service B selected\nThis is a demo response.\nOverride this method for custom logic."
+                elif selection == 3:
+                    msg = "Service C selected\nThis is a demo response.\nOverride this method for custom logic."
+                else:
+                    msg = "Invalid selection. Please choose 1-3."
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, msg, False
+                )
+            except ValueError:
+                msg = "Invalid input. Please enter a valid number."
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, msg, False
+                )
+        else:
+            msg = f"Service '{service}' selected.\nThis is a demo implementation.\nOverride this method for custom logic."
+            return self._create_nalo_ussd_response(userid, msisdn, userdata, msg, False)
+
+    def _handle_main_menu_selection(
+        self, userid: str, msisdn: str, userdata: str, network: str, sessionid: str
+    ) -> Dict[str, Any]:
+        """Handle main menu selection."""
+        try:
+            selection = int(userdata.strip())
+
+            if selection == 1:
+                # Check Balance - demo response
+                msg = "Demo Balance: GHS 150.75\nThank you for using our service!"
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, msg, False
+                )
+
+            elif selection == 2:
+                # Account Info - demo response
+                msg = f"Account Information\nPhone: {msisdn}\nNetwork: {network}\nStatus: Active"
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, msg, False
+                )
+
+            elif selection == 3:
+                # Services - generic sub-menu
+                msg = (
+                    "Available Services\n"
+                    "1. Service A\n"
+                    "2. Service B\n"
+                    "3. Service C"
+                )
+                self.update_ussd_session(sessionid, {"stage": 1, "service": "services"})
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, msg, True
+                )
+
+            elif selection == 4:
+                # Settings - demo response
+                msg = "Settings\nLanguage: English\nNotifications: Enabled\nAccount Type: Standard"
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, msg, False
+                )
+
+            elif selection == 0:
+                # Help
+                msg = (
+                    "Help & Support\n"
+                    "This is a demo USSD implementation.\n"
+                    "Override the methods to add your business logic.\n"
+                    "Thank you!"
+                )
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, msg, False
+                )
+
+            else:
+                msg = "Invalid selection. Please choose 0-4."
+                return self._create_nalo_ussd_response(
+                    userid, msisdn, userdata, msg, False
+                )
+
+        except ValueError:
+            msg = "Invalid input. Please enter a number (0-4)."
+            return self._create_nalo_ussd_response(userid, msisdn, userdata, msg, False)
+
+    def _create_nalo_ussd_response(
+        self,
+        userid: str,
+        msisdn: str,
+        userdata: str,
+        message: str,
+        continue_session: bool,
+    ) -> Dict[str, Any]:
+        """
+        Create USSD response in Nalo API format.
+
+        Args:
+            userid: The USERID from the request
+            msisdn: The MSISDN from the request
+            userdata: The USERDATA from the request
+            message: Message to display to user
+            continue_session: Whether to continue the session (true) or end it (false)
+
+        Returns:
+            Response dictionary in Nalo format
+        """
+        return {
+            "USERID": userid,
+            "MSISDN": msisdn,
+            "USERDATA": userdata,
+            "MSG": message,
+            "MSGTYPE": continue_session,
+        }
+
+    def _init_ussd_session(self, sessionid: str):
+        """Initialize a new USSD session."""
+        self._ussd_sessions[sessionid] = {
+            "stage": 0,
+            "data": {},
+            "created_at": self._get_current_timestamp(),
+        }
+
+    def _get_current_timestamp(self) -> str:
+        """Get current timestamp."""
+        import datetime
+
+        return datetime.datetime.now().isoformat()
 
     def create_ussd_menu(
         self, title: str, options: List[str], footer: Optional[str] = None
@@ -362,11 +766,13 @@ class NaloSolutions:
         if sessionid in self._ussd_sessions:
             session = self._ussd_sessions[sessionid]
             for key, value in data.items():
-                if key == "step":
-                    # Step goes at the top level
-                    session[key] = value
+                if key in ["step", "stage"]:
+                    # Stage/step goes at the top level
+                    session["stage"] = value
                 else:
                     # Other data goes into the data sub-object
+                    if "data" not in session:
+                        session["data"] = {}
                     session["data"][key] = value
 
     def clear_ussd_session(self, sessionid: str):
@@ -414,23 +820,29 @@ class NaloSolutions:
 
     def send_email(
         self,
-        to_email: str,
+        to_email: Union[str, List[str]],
         subject: str,
         message: str,
-        send_format: Literal["json", "form"] = "json",
+        from_email: Optional[str] = None,
+        sender_name: Optional[str] = None,
+        callback_url: Optional[str] = None,
+        template: Optional[str] = None,
+        html: Optional[str] = None,
         attachments: Optional[List[str]] = None,
-        custom_headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """
-        Send email message.
+        Send email message using Nalo Email API.
 
         Args:
-            to_email: Recipient email address
+            to_email: Recipient email address(es) - can be string or list
             subject: Email subject
             message: Email message content
-            send_format: Format to send (json or form)
+            from_email: Sender email address (must be verified)
+            sender_name: Name of the sender
+            callback_url: Callback URL for delivery status
+            template: Template name for Nalo's cloud platform
+            html: Encoded HTML content
             attachments: List of attachment file paths
-            custom_headers: Custom email headers
 
         Returns:
             Email response dictionary
@@ -442,106 +854,143 @@ class NaloSolutions:
             raise ValueError("Subject must be provided")
         if not message:
             raise ValueError("Message must be provided")
-        if not self.validate_email(to_email):
-            raise ValueError("Invalid email address format")
+
+        # Validate email addresses
+        if isinstance(to_email, str):
+            if not self.validate_email(to_email):
+                raise ValueError("Invalid email address format")
+            email_to = [to_email]
+        else:
+            for email in to_email:
+                if not self.validate_email(email):
+                    raise ValueError(f"Invalid email address format: {email}")
+            email_to = to_email
 
         # Check authentication
         if not ((self.email_username and self.email_password) or self.email_auth_key):
             raise ValueError("Authentication credentials must be provided")
 
-        # Prepare email data
-        email_data = {"to": to_email, "subject": subject, "message": message}
+        # Prepare email data according to API documentation
+        email_data = {
+            "emailTo": email_to,
+            "subject": subject,
+            "emailBody": message,
+            "emailFrom": from_email or self.email_from_email,
+            "senderName": sender_name or self.email_from_name or "API User",
+        }
 
         # Add authentication
         if self.email_auth_key:
-            email_data["authkey"] = self.email_auth_key
+            email_data["key"] = self.email_auth_key
         else:
             email_data["username"] = self.email_username
             email_data["password"] = self.email_password
 
         # Add optional fields
-        if self.email_from_email:
-            email_data["from"] = self.email_from_email
-        if self.email_from_name:
-            email_data["from_name"] = self.email_from_name
-        if custom_headers:
-            email_data["custom_headers"] = custom_headers
+        if callback_url:
+            email_data["callBackUrl"] = callback_url
+        if template:
+            email_data["template"] = template
+        if html:
+            email_data["html"] = html
 
-        if send_format == "json":
-            return self._make_request(
-                "POST", self.email_base_url + "/", json=email_data
-            )
+        # Handle attachments
+        if attachments:
+            return self._send_email_with_attachments(email_data, attachments)
         else:
-            # Form data with files
-            files = {}
-            if attachments:
-                for i, attachment_path in enumerate(attachments):
-                    try:
-                        with open(attachment_path, "rb") as f:
-                            files[f"attachment_{i}"] = f.read()
-                    except FileNotFoundError:
-                        pass  # Skip missing files in tests
+            # Send as JSON for simple emails
+            return self._make_request("POST", self.email_base_url, json=email_data)
 
-            headers = {"Content-Type": "multipart/form-data"}
-            return self._make_request(
-                "POST",
-                self.email_base_url + "/",
-                data=email_data,
-                files=files,
-                headers=headers,
-            )
-
-    def send_html_email(
-        self, to_email: str, subject: str, html_content: str
+    def _send_email_with_attachments(
+        self, email_data: Dict[str, Any], attachments: List[str]
     ) -> Dict[str, Any]:
-        """Send HTML email."""
-        email_data = {
-            "to": to_email,
-            "subject": subject,
-            "message": html_content,
-            "content_type": "html",
+        """Send email with file attachments using form data."""
+        files = {}
+
+        # Process attachments
+        for i, attachment_path in enumerate(attachments):
+            try:
+                with open(attachment_path, "rb") as f:
+                    files["attach_file"] = f.read()
+            except FileNotFoundError:
+                raise ValueError(f"Attachment file not found: {attachment_path}")
+
+        # Convert email_data for form submission
+        form_data = email_data.copy()
+
+        # Convert emailTo list to individual fields for form data
+        if isinstance(form_data.get("emailTo"), list):
+            if len(form_data["emailTo"]) == 1:
+                form_data["emailTo"] = form_data["emailTo"][0]
+            else:
+                # For multiple recipients in form data, use comma-separated string
+                form_data["emailTo"] = ",".join(form_data["emailTo"])
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
         }
 
-        if self.email_auth_key:
-            email_data["authkey"] = self.email_auth_key
-        else:
-            email_data["username"] = self.email_username
-            email_data["password"] = self.email_password
+        return self._make_request(
+            "POST",
+            self.email_base_url,
+            data=form_data,
+            files=files,
+            headers=headers,
+        )
 
-        return self._make_request("POST", self.email_base_url + "/", json=email_data)
+    def send_html_email(
+        self,
+        to_email: Union[str, List[str]],
+        subject: str,
+        html_content: str,
+        from_email: Optional[str] = None,
+        sender_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Send HTML email using the html parameter."""
+        return self.send_email(
+            to_email=to_email,
+            subject=subject,
+            message="HTML Email",  # Provide a default message when using HTML
+            from_email=from_email,
+            sender_name=sender_name,
+            html=html_content,
+        )
 
     def send_bulk_email(
-        self, recipients: List[Dict[str, str]], subject: str, message: str
+        self,
+        recipients: List[str],
+        subject: str,
+        message: str,
+        from_email: Optional[str] = None,
+        sender_name: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Send bulk emails."""
-        results = []
-        for recipient in recipients:
-            result = self.send_email(
-                to_email=recipient["email"], subject=subject, message=message
-            )
-            results.append(result)
-
-        # Return overall status
-        if all(r.get("status") == "success" for r in results):
-            return {"status": "success", "sent_count": len(results)}
-        else:
-            return {"status": "partial", "results": results}
+        """Send bulk emails to multiple recipients in a single API call."""
+        return self.send_email(
+            to_email=recipients,
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            sender_name=sender_name,
+        )
 
     def send_email_with_template(
-        self, to_email: str, template: Dict[str, str], template_data: Dict[str, Any]
+        self,
+        to_email: Union[str, List[str]],
+        template_name: str,
+        content: str,
+        subject: str,
+        from_email: Optional[str] = None,
+        sender_name: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Send email using template."""
-        # Process template
-        subject = template["subject"]
-        message = template["body"]
-
-        # Replace template variables
-        for key, value in template_data.items():
-            placeholder = f"{{{{{key}}}}}"
-            subject = subject.replace(placeholder, str(value))
-            message = message.replace(placeholder, str(value))
-
-        return self.send_email(to_email, subject, message)
+        """Send email using Nalo's cloud template with placeholder {{{content}}}."""
+        return self.send_email(
+            to_email=to_email,
+            subject=subject,
+            message=content,  # This will be inserted into the template's {{{content}}} placeholder
+            from_email=from_email,
+            sender_name=sender_name,
+            template=template_name,
+        )
 
     def validate_email(self, email: str) -> bool:
         """Validate email address format."""
@@ -568,12 +1017,30 @@ class NaloSolutions:
         return True
 
     def handle_email_callback(self, callback_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle email delivery callback."""
-        if "message_id" in callback_data and "status" in callback_data:
+        """
+        Handle email delivery callback from Nalo Email API.
+
+        Expected callback parameters:
+        - mid: unique id for the email
+        - sender_address: sender email address
+        - destination_address: recipient address
+        - timestamp: date and time mail was sent
+        - status_desc: the state of that particular email job
+
+        Args:
+            callback_data: Callback data received from Nalo
+
+        Returns:
+            Processed callback response
+        """
+        if "mid" in callback_data and "status_desc" in callback_data:
             return {
                 "processed": True,
-                "message_id": callback_data["message_id"],
-                "status": callback_data["status"],
+                "email_id": callback_data["mid"],
+                "sender": callback_data.get("sender_address"),
+                "recipient": callback_data.get("destination_address"),
+                "timestamp": callback_data.get("timestamp"),
+                "status": callback_data["status_desc"],
             }
         else:
             return {"processed": False, "error": "Invalid callback data"}

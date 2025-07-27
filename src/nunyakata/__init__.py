@@ -10,7 +10,7 @@ __author__ = "Joseph"
 __email__ = "etsejoey@outlook.com"
 
 from .client import NunyakataClient
-from .services.nalo_solutions import NaloSolutionsClient
+from .services.nalo_solutions import NaloSolutions
 from .config import (
     load_nalo_client_from_env,
     get_env_config,
@@ -22,7 +22,7 @@ __version__ = "0.1.0"
 
 __all__ = [
     "NunyakataClient",
-    "NaloSolutionsClient",
+    "NaloSolutions",
     "load_nalo_client_from_env",
     "get_env_config",
     "validate_env_config",
