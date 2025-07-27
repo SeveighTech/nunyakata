@@ -66,15 +66,6 @@ def load_nalo_client_from_env() -> NaloSolutions:
     email_password = os.getenv("NALO_EMAIL_PASSWORD")
     email_auth_key = os.getenv("NALO_EMAIL_AUTH_KEY")
 
-    # API endpoints (optional)
-    payment_base_url = os.getenv("NALO_PAYMENT_BASE_URL")
-    sms_base_url = os.getenv("NALO_SMS_BASE_URL")
-    sms_post_url = os.getenv("NALO_SMS_POST_URL")
-    email_base_url = os.getenv("NALO_EMAIL_BASE_URL")
-
-    # General API key
-    api_key = os.getenv("NALO_API_KEY")
-
     # Validate that we have at least some credentials
     has_payment_creds = payment_username and payment_password and merchant_id
     has_sms_creds = sms_auth_key or (sms_username and sms_password)
@@ -92,27 +83,16 @@ def load_nalo_client_from_env() -> NaloSolutions:
         # Payment credentials
         payment_username=payment_username,
         payment_password=payment_password,
-        merchant_id=merchant_id,
+        payment_merchant_id=merchant_id,
         # SMS credentials
         sms_username=sms_username,
         sms_password=sms_password,
-        sms_source=sms_source,
+        sms_sender_id=sms_source,
         sms_auth_key=sms_auth_key,
         # Email credentials
         email_username=email_username,
         email_password=email_password,
         email_auth_key=email_auth_key,
-        # API endpoints (will use defaults if None)
-        payment_base_url=payment_base_url
-        or "https://api.nalosolutions.com/payplus/api/",
-        sms_base_url=sms_base_url
-        or "https://sms.nalosolutions.com/smsbackend/clientapi/Resl_Nalo/send-message/",
-        sms_post_url=sms_post_url
-        or "https://sms.nalosolutions.com/smsbackend/Resl_Nalo/send-message/",
-        email_base_url=email_base_url
-        or "https://sms.nalosolutions.com/clientapi/Nal_resl/send-email/",
-        # General API key
-        api_key=api_key,
     )
 
 
@@ -238,10 +218,10 @@ def create_nalo_client(
     return NaloSolutions(
         payment_username=payment_username,
         payment_password=payment_password,
-        merchant_id=merchant_id,
+        payment_merchant_id=merchant_id,
         sms_username=sms_username,
         sms_password=sms_password,
-        sms_source=sms_source,
+        sms_sender_id=sms_source,
         sms_auth_key=sms_auth_key,
         **kwargs,
     )
