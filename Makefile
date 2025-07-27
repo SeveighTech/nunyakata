@@ -108,10 +108,13 @@ ci: install qa build
 	@echo "🚀 CI/CD simulation completed successfully!"
 
 # Development workflow
-dev-setup: install
-	@echo "Development environment setup complete!"
-	@echo "Run 'make test' to verify everything works."
-
+dev-setup:
+	@test -d .venv || (echo "🔧 Creating virtual environment..." && python3 -m venv .venv)
+	@echo "✅ Virtual environment ready."
+	@. .venv/bin/activate && pip install --upgrade pip && pip install -e ".[dev,test,webhook]"
+	@echo "✅ Development environment setup complete!"
+	@echo "👉 Run 'source .venv/bin/activate' to activate the virtual environment."
+	@echo "👉 Then run 'make test' to verify everything works."
 # Quick test for development
 quick-test:
 	pytest tests/test_client.py -v
