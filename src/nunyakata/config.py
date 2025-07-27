@@ -3,7 +3,8 @@ Environment configuration utilities for Nunyakata.
 """
 
 import os
-from typing import Optional
+from typing import List, Optional, Tuple
+
 from .services.nalo_solutions import NaloSolutions
 
 
@@ -157,7 +158,7 @@ def get_env_config() -> dict:
     return config
 
 
-def validate_env_config() -> tuple[bool, list[str]]:
+def validate_env_config() -> Tuple[bool, List[str]]:
     """
     Validate environment configuration.
 

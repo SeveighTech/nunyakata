@@ -1,6 +1,7 @@
 """Tests for Nalo USSD API functionality - Fixed to match actual implementation."""
 
 import pytest
+
 from nunyakata.services.nalo_solutions import NaloSolutions
 
 

@@ -2,6 +2,7 @@
 
 import pytest
 import requests
+
 from nunyakata.services.nalo_solutions import NaloSolutions
 
 

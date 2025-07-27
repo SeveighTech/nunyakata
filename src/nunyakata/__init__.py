@@ -50,13 +50,13 @@ __version__ = "0.1.1"
 __author__ = "Joseph"
 __email__ = "nunyakata@seveightech.com"
 
-from .services.nalo_solutions import NaloSolutions
 from .config import (
-    load_nalo_client_from_env,
-    get_env_config,
-    validate_env_config,
     create_nalo_client,
+    get_env_config,
+    load_nalo_client_from_env,
+    validate_env_config,
 )
+from .services.nalo_solutions import NaloSolutions
 
 __all__ = [
     "NaloSolutions",

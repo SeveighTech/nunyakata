@@ -1,8 +1,10 @@
 """Tests for Nalo Email API functionality - Fixed to match actual implementation."""
 
+from unittest.mock import mock_open, patch
+
 import pytest
 import requests
-from unittest.mock import mock_open, patch
+
 from nunyakata.services.nalo_solutions import NaloSolutions
 
 

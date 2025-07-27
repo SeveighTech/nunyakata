@@ -2,10 +2,11 @@
 Simple implementation of NaloSolutions for testing.
 """
 
-import requests
 import hashlib
-from typing import Dict, Any, Optional, List, Literal, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 from urllib.parse import urlencode
+
+import requests
 
 
 class NaloSolutions:
@@ -336,8 +337,8 @@ class NaloSolutions:
         Returns:
             Payment response dictionary
         """
-        import uuid
         import time
+        import uuid
 
         # Auto-detect network if not provided
         if not network:
