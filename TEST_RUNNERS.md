@@ -29,6 +29,9 @@ python3 run_tests.py --help
 ### 2. Shell Script Wrapper (Simple)
 
 ```bash
+# Make the script executable (first time only)
+chmod +x test.sh
+
 # Run all tests (equivalent to python3 run_tests.py)
 ./test.sh
 
@@ -37,6 +40,8 @@ python3 run_tests.py --help
 ./test.sh --lint
 ./test.sh --coverage
 ```
+
+**Note**: If you get a "permission denied" error, make sure the script is executable with `chmod +x test.sh`.
 
 ### 3. Individual Commands (Manual)
 

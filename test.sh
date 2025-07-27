@@ -25,6 +25,16 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
+# Check if this script is executable
+if [ ! -x "$0" ]; then
+    echo -e "${YELLOW}⚠️  This script is not executable.${NC}"
+    echo -e "${CYAN}To fix this, run: ${YELLOW}chmod +x test.sh${NC}"
+    echo -e "${CYAN}Then try again: ${YELLOW}./test.sh${NC}"
+    echo ""
+    echo -e "${BLUE}Continuing with: bash test.sh $@${NC}"
+    echo ""
+fi
+
 # Run the Python test runner with all arguments passed through
 echo -e "${BLUE}Running: python3 run_tests.py $@${NC}"
 echo ""
