@@ -22,7 +22,7 @@ class NaloSolutions:
     # Default network when auto-detection fails
     DEFAULT_NETWORK = "MTN"
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None, **kwargs):
+    def __init__(self, config: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
         """
         Initialize Nalo Solutions client.
 
@@ -31,7 +31,7 @@ class NaloSolutions:
             **kwargs: Alternative way to pass individual parameters
         """
         # Initialize session management for USSD
-        self._ussd_sessions = {}
+        self._ussd_sessions: Dict[str, Dict[str, Any]] = {}
 
         # Handle both config dict and individual parameters
         if config is not None:
@@ -49,7 +49,7 @@ class NaloSolutions:
             }
         )
 
-    def _init_from_config(self, config: Dict[str, Any]):
+    def _init_from_config(self, config: Dict[str, Any]) -> None:
         """Initialize from configuration dictionary."""
         # Payment configuration
         payment_config = config.get("payment", {})
@@ -82,7 +82,7 @@ class NaloSolutions:
         # Set API URLs based on environment
         self._set_api_urls()
 
-    def _init_from_kwargs(self, kwargs):
+    def _init_from_kwargs(self, kwargs: Dict[str, Any]) -> None:
         """Initialize from keyword arguments."""
         # Initialize empty config for URL setting
         self.config = {}
@@ -114,7 +114,7 @@ class NaloSolutions:
         # Set API URLs
         self._set_api_urls()
 
-    def _set_api_urls(self):
+    def _set_api_urls(self) -> None:
         """Set API URLs based on environment."""
         # Payment API - always uses production endpoint according to docs
         self.payment_base_url = "https://api.nalosolutions.com/payplus/api"
@@ -186,7 +186,7 @@ class NaloSolutions:
         """
         return self.NETWORK_PREFIXES.copy()
 
-    def _make_request(self, method: str, url: str, **kwargs) -> Dict[str, Any]:
+    def _make_request(self, method: str, url: str, **kwargs: Any) -> Dict[str, Any]:
         """Make HTTP request and handle response."""
         try:
             response = self.session.request(method, url, **kwargs)
@@ -194,7 +194,8 @@ class NaloSolutions:
             # For successful responses, try to return JSON
             if response.status_code < 400:
                 try:
-                    return response.json()
+                    json_response: Dict[str, Any] = response.json()
+                    return json_response
                 except ValueError:
                     # If JSON parsing fails, return the raw text response
                     return {
@@ -206,7 +207,7 @@ class NaloSolutions:
 
             # For error responses, try to get the JSON error message
             try:
-                error_data = response.json()
+                error_data: Dict[str, Any] = response.json()
                 return error_data
             except ValueError:
                 # If JSON parsing fails, create a response with the raw text
@@ -765,7 +766,7 @@ class NaloSolutions:
             "MSGTYPE": continue_session,
         }
 
-    def _init_ussd_session(self, sessionid: str):
+    def _init_ussd_session(self, sessionid: str) -> None:
         """Initialize a new USSD session."""
         self._ussd_sessions[sessionid] = {
             "stage": 0,
@@ -811,7 +812,7 @@ class NaloSolutions:
             self._ussd_sessions[sessionid] = {"step": 0, "data": {}}
         return self._ussd_sessions[sessionid]
 
-    def update_ussd_session(self, sessionid: str, data: Dict[str, Any]):
+    def update_ussd_session(self, sessionid: str, data: Dict[str, Any]) -> None:
         """Update USSD session data."""
         if sessionid in self._ussd_sessions:
             session = self._ussd_sessions[sessionid]
@@ -825,7 +826,7 @@ class NaloSolutions:
                         session["data"] = {}
                     session["data"][key] = value
 
-    def clear_ussd_session(self, sessionid: str):
+    def clear_ussd_session(self, sessionid: str) -> None:
         """Clear USSD session."""
         if sessionid in self._ussd_sessions:
             del self._ussd_sessions[sessionid]
@@ -1095,11 +1096,11 @@ class NaloSolutions:
         else:
             return {"processed": False, "error": "Invalid callback data"}
 
-    def __enter__(self):
+    def __enter__(self) -> "NaloSolutions":
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Context manager exit."""
         if hasattr(self, "session"):
             self.session.close()

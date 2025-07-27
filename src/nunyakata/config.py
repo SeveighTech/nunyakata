@@ -3,7 +3,7 @@ Environment configuration utilities for Nunyakata.
 """
 
 import os
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from .services.nalo_solutions import NaloSolutions
 
@@ -211,7 +211,7 @@ def create_nalo_client(
     sms_password: Optional[str] = None,
     sms_source: Optional[str] = None,
     sms_auth_key: Optional[str] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> NaloSolutions:
     """
     Create a Nalo Solutions client with explicit parameters or environment variables.
