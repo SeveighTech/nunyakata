@@ -87,19 +87,19 @@ class TestRunner:
             return False
 
         # Check pip (try both pip and pip3)
-        pip_found = False
+        self.pip_command = None
         for pip_cmd in ["pip3", "pip"]:
             try:
                 subprocess.run([pip_cmd, "--version"], capture_output=True, check=True)
                 print(
                     f"{Colors.OKGREEN}✅ Pip package manager found ({pip_cmd}){Colors.ENDC}"
                 )
-                pip_found = True
+                self.pip_command = pip_cmd
                 break
             except (subprocess.CalledProcessError, FileNotFoundError):
                 continue
 
-        if not pip_found:
+        if not self.pip_command:
             print(f"{Colors.FAIL}❌ Pip package manager not found{Colors.ENDC}")
             return False
 
