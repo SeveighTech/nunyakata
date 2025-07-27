@@ -217,6 +217,9 @@ jobs:
     name: Active Release Deployment
     runs-on: ubuntu-latest
     needs: [lint, test, build]
+    environment:
+      name: ${{ github.event_name == 'pull_request' && 'test-release' || (github.ref == 'refs/heads/main' && 'release') || 'test-release' }}
+      url: https://github.com/${{ github.repository }}
 
     steps:
       - name: Check deployment readiness
@@ -226,3 +229,62 @@ jobs:
           echo "✅ Tests passed"
           echo "✅ Code quality checks passed"
           echo "🚀 Ready for deployment"
+
+      - name: Simulate deployment
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            ENV_NAME="test-release"
+            echo "🧪 Testing deployment to test-release environment..."
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            ENV_NAME="release"
+            echo "🚀 Production deployment to release environment..."
+          else
+            ENV_NAME="test-release" 
+            echo "🔄 Development deployment to test-release environment..."
+          fi
+
+          echo "Environment: $ENV_NAME"
+          echo "Deployment URL: https://github.com/${{ github.repository }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "✅ Deployment completed successfully"
+
+  # Development deployment for dev branch pushes
+  dev-deployment:
+    name: Development Deployment
+    runs-on: ubuntu-latest
+    needs: [lint, test, build]
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    environment:
+      name: test-release
+      url: https://github.com/${{ github.repository }}/tree/dev
+
+    steps:
+      - name: Deploy to development
+        run: |
+          echo "� Deploying dev branch to test-release environment..."
+          echo "Development URL: https://github.com/${{ github.repository }}/tree/dev"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Branch: dev"
+          echo "✅ Development deployment completed successfully"
+
+  # Production deployment for main branch (after PR merge)
+  production-deployment:
+    name: Production Release
+    runs-on: ubuntu-latest
+    needs: [lint, test, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: release
+      url: https://github.com/${{ github.repository }}
+
+    steps:
+      - name: Deploy to production
+        run: |
+          echo "🚀 Production deployment to release environment..."
+          echo "Production URL: https://github.com/${{ github.repository }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Branch: main"
+          echo "Event: Push to main (likely from merged PR)"
+          echo "✅ Production deployment completed successfully"
