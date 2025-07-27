@@ -125,7 +125,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' || github.base_ref == 'main'
+    # Always run but with different test selection based on context
 
     steps:
       - uses: actions/checkout@v4
@@ -143,7 +143,14 @@ jobs:
 
       - name: Run integration tests
         run: |
-          pytest tests/ -m "integration" -v || echo "No integration tests found"
+          # Run integration tests if they exist, otherwise just pass
+          if pytest tests/ -m "integration" --collect-only -q > /dev/null 2>&1; then
+            echo "Running integration tests..."
+            pytest tests/ -m "integration" -v
+          else
+            echo "No integration tests found - skipping"
+            exit 0
+          fi
         env:
           # Add any environment variables needed for integration tests
           NALO_PUBLIC_KEY: ${{ secrets.NALO_PUBLIC_KEY_SANDBOX }}
