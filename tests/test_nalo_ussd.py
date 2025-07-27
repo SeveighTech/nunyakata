@@ -30,7 +30,7 @@ class TestNaloUSSDAPI:
             "USERID": "test_userid",
             "MSISDN": "233501234567",
             "USERDATA": "",
-            "MSGTYPE": True,  # Initial request
+            "MSGTYPE": True,  # Initial USSD Request
             "NETWORK": "MTN",
             "SESSIONID": "session_123",
         }
