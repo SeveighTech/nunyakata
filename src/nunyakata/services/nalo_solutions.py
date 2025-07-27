@@ -296,7 +296,7 @@ class NaloSolutions:
         payment_data = {
             "merchant_id": self.payment_merchant_id,
             "key": key,
-            "secrete": secret,  # Note: API uses 'secrete' not 'secret'
+            "secrete": secret,  # Note: The API specification explicitly uses 'secrete' (not 'secret'), and this must not be changed to ensure compatibility.
             "order_id": order_id,
             "customerName": customer_name,
             "amount": str(amount),  # API expects string
