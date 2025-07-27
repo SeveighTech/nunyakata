@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Comprehensive documentation with Read the Docs
 - Integration tracking system with GitHub Issues
 - Development tools and CI/CD improvements
@@ -15,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.1] - 2025-01-27
 
 ### Added
+
 - Complete Nalo Solutions integration
 - Payment processing (MTN, Vodafone, AirtelTigo)
 - SMS messaging with bulk support
@@ -25,19 +27,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PyPI package distribution
 
 ### Features
+
 - **Payment Services**
+
   - Mobile money payments
   - Payment callback handling
   - Multiple wallet support (MTN, Vodafone, AirtelTigo)
   - Transaction status tracking
 
 - **SMS Services**
+
   - Single and bulk SMS sending
   - Custom sender ID support
   - Unicode message support
   - Phone number validation and formatting
 
 - **Email Services**
+
   - Plain text and HTML emails
   - Bulk email sending
   - Email templates
@@ -50,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Custom USSD flows
 
 ### Technical
+
 - Clean API design with consistent response formats
 - Comprehensive error handling
 - Request/response logging
@@ -59,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-01-20
 
 ### Added
+
 - Initial project structure
 - Basic Nalo Solutions client
 - Core payment functionality
@@ -97,4 +105,4 @@ We welcome contributions! See our [Contributing Guide](contributing/setup.md) fo
 
 ---
 
-*For detailed technical changes, see the [commit history](https://github.com/SeveighTech/nunyakata/commits/main).*
+_For detailed technical changes, see the [commit history](https://github.com/SeveighTech/nunyakata/commits/main)._

@@ -11,6 +11,16 @@ from urllib.parse import urlencode
 class NaloSolutions:
     """Client for interacting with Nalo Solutions APIs (Payments, SMS, USSD, Email)."""
 
+    # Network detection mappings for Ghana mobile numbers
+    NETWORK_PREFIXES = {
+        "MTN": ["233024", "233054", "233055", "233059"],
+        "VODAFONE": ["233020", "233050"],
+        "AIRTELTIGO": ["233027", "233057", "233026", "233056"],
+    }
+
+    # Default network when auto-detection fails
+    DEFAULT_NETWORK = "MTN"
+
     def __init__(self, config: Optional[Dict[str, Any]] = None, **kwargs):
         """
         Initialize Nalo Solutions client.
@@ -119,6 +129,61 @@ class NaloSolutions:
         self.sms_base_url_post = f"{base_url}/smsbackend/Resl_Nalo/send-message/"
         # Email API uses the same base but different endpoint
         self.email_base_url = f"{base_url}/smsbackend/clientapi/Nal_resl/send-email/"
+
+    def _detect_network(self, phone_number: str) -> str:
+        """
+        Detect network operator based on phone number prefix.
+
+        Args:
+            phone_number: Phone number to analyze
+
+        Returns:
+            Network operator name (MTN, VODAFONE, AIRTELTIGO)
+        """
+        if not phone_number:
+            return self.DEFAULT_NETWORK
+
+        # Check each network's prefixes
+        for network, prefixes in self.NETWORK_PREFIXES.items():
+            if any(phone_number.startswith(prefix) for prefix in prefixes):
+                return network
+
+        # Return default if no match found
+        return self.DEFAULT_NETWORK
+
+    def update_network_prefixes(self, network_mappings: Dict[str, List[str]]) -> None:
+        """
+        Update network prefix mappings.
+
+        Args:
+            network_mappings: Dictionary mapping network names to prefix lists
+
+        Example:
+            client.update_network_prefixes({
+                "MTN": ["233024", "233054", "233055", "233059"],
+                "VODAFONE": ["233020", "233050", "233070"],
+                "AIRTELTIGO": ["233027", "233057", "233026", "233056"]
+            })
+        """
+        if not isinstance(network_mappings, dict):
+            raise ValueError("network_mappings must be a dictionary")
+
+        for network, prefixes in network_mappings.items():
+            if not isinstance(prefixes, list):
+                raise ValueError(f"Prefixes for {network} must be a list")
+            if not all(isinstance(p, str) for p in prefixes):
+                raise ValueError(f"All prefixes for {network} must be strings")
+
+        self.NETWORK_PREFIXES.update(network_mappings)
+
+    def get_network_prefixes(self) -> Dict[str, List[str]]:
+        """
+        Get current network prefix mappings.
+
+        Returns:
+            Dictionary of network names to prefix lists
+        """
+        return self.NETWORK_PREFIXES.copy()
 
     def _make_request(self, method: str, url: str, **kwargs) -> Dict[str, Any]:
         """Make HTTP request and handle response."""
@@ -276,23 +341,7 @@ class NaloSolutions:
 
         # Auto-detect network if not provided
         if not network:
-            if (
-                phone_number.startswith("233024")
-                or phone_number.startswith("233054")
-                or phone_number.startswith("233055")
-            ):
-                network = "MTN"
-            elif phone_number.startswith("233020") or phone_number.startswith("233050"):
-                network = "VODAFONE"
-            elif (
-                phone_number.startswith("233027")
-                or phone_number.startswith("233057")
-                or phone_number.startswith("233026")
-                or phone_number.startswith("233056")
-            ):
-                network = "AIRTELTIGO"
-            else:
-                network = "MTN"  # Default to MTN
+            network = self._detect_network(phone_number)
 
         # Generate unique order ID
         order_id = f"ORDER_{int(time.time())}_{str(uuid.uuid4())[:8]}"
@@ -1053,7 +1102,3 @@ class NaloSolutions:
         """Context manager exit."""
         if hasattr(self, "session"):
             self.session.close()
-
-
-# Backward compatibility alias
-NaloSolutionsClient = NaloSolutions

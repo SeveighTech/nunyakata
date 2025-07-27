@@ -11,6 +11,7 @@ pip install nunyakata
 ## 2. Basic Setup
 
 ### Option A: Direct Configuration
+
 ```python
 from nunyakata import NaloSolutions
 
@@ -18,13 +19,14 @@ client = NaloSolutions(
     sms_username="your_username",
     sms_password="your_password",
     sms_source="YOUR_SENDER",
-    payment_username="your_payment_username", 
+    payment_username="your_payment_username",
     payment_password="your_payment_password",
     merchant_id="your_merchant_id"
 )
 ```
 
 ### Option B: Environment Variables
+
 ```bash
 # Create .env file
 cat > .env << EOF
@@ -89,12 +91,12 @@ if email_response.get('status') == 'success':
 
 ## 🎉 That's it!
 
-You're now ready to integrate Ghanaian services into your application. 
+You're now ready to integrate Ghanaian services into your application.
 
 ## Next Steps
 
 - **[Configuration Guide](configuration.md)** - Learn about all configuration options
-- **[Nalo Solutions Guide](../services/nalo-solutions.md)** - Complete service documentation  
+- **[Nalo Solutions Guide](../services/nalo-solutions.md)** - Complete service documentation
 - **[Payment Examples](../examples/payments.md)** - Advanced payment integration
 - **[SMS Examples](../examples/sms.md)** - Bulk SMS and advanced features
 - **[Error Handling](../api/exceptions.md)** - How to handle errors gracefully

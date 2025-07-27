@@ -62,9 +62,11 @@ pip install nunyakata[env]
 ## 🏗️ Currently Supported Services
 
 ### ✅ Completed Integrations
+
 - **Nalo Solutions** - Payments, SMS, Email, USSD
 
 ### 🚧 Planned Integrations
+
 - **Hubtel** - Payment gateway and messaging
 - **ExpressPay** - Payment processing
 - **PaySwitch** - Payment services
@@ -105,4 +107,4 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 ---
 
-*Built with ❤️ for the Ghanaian developer community*
+_Built with ❤️ for the Ghanaian developer community_

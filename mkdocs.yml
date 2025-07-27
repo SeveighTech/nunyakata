@@ -53,28 +53,28 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting Started:
-    - Installation: getting-started/installation.md
-    - Quick Start: getting-started/quickstart.md
-    - Configuration: getting-started/configuration.md
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+      - Configuration: getting-started/configuration.md
   - Services:
-    - Nalo Solutions: services/nalo-solutions.md
-    - Payment APIs: services/payments.md
-    - SMS APIs: services/sms.md
-    - Email APIs: services/email.md
-    - USSD APIs: services/ussd.md
+      - Nalo Solutions: services/nalo-solutions.md
+      - Payment APIs: services/payments.md
+      - SMS APIs: services/sms.md
+      - Email APIs: services/email.md
+      - USSD APIs: services/ussd.md
   - API Reference:
-    - Client Classes: api/clients.md
-    - Configuration: api/config.md
-    - Exceptions: api/exceptions.md
+      - Client Classes: api/clients.md
+      - Configuration: api/config.md
+      - Exceptions: api/exceptions.md
   - Examples:
-    - Payment Integration: examples/payments.md
-    - SMS Integration: examples/sms.md
-    - USSD Integration: examples/ussd.md
-    - Email Integration: examples/email.md
+      - Payment Integration: examples/payments.md
+      - SMS Integration: examples/sms.md
+      - USSD Integration: examples/ussd.md
+      - Email Integration: examples/email.md
   - Contributing:
-    - Development Setup: contributing/setup.md
-    - Adding Integrations: contributing/integrations.md
-    - Testing: contributing/testing.md
+      - Development Setup: contributing/setup.md
+      - Adding Integrations: contributing/integrations.md
+      - Testing: contributing/testing.md
   - Changelog: changelog.md
 
 plugins:

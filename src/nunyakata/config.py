@@ -4,10 +4,10 @@ Environment configuration utilities for Nunyakata.
 
 import os
 from typing import Optional
-from .services.nalo_solutions import NaloSolutionsClient
+from .services.nalo_solutions import NaloSolutions
 
 
-def load_nalo_client_from_env() -> NaloSolutionsClient:
+def load_nalo_client_from_env() -> NaloSolutions:
     """
     Create a Nalo Solutions client using environment variables.
 
@@ -23,7 +23,7 @@ def load_nalo_client_from_env() -> NaloSolutionsClient:
     - NALO_API_KEY (optional)
 
     Returns:
-        Configured NaloSolutionsClient instance
+        Configured NaloSolutions instance
 
     Raises:
         ValueError: If required environment variables are missing
@@ -87,7 +87,7 @@ def load_nalo_client_from_env() -> NaloSolutionsClient:
             "and/or email credentials (NALO_EMAIL_AUTH_KEY or NALO_EMAIL_USERNAME/NALO_EMAIL_PASSWORD)."
         )
 
-    return NaloSolutionsClient(
+    return NaloSolutions(
         # Payment credentials
         payment_username=payment_username,
         payment_password=payment_password,
@@ -211,7 +211,7 @@ def create_nalo_client(
     sms_source: Optional[str] = None,
     sms_auth_key: Optional[str] = None,
     **kwargs,
-) -> NaloSolutionsClient:
+) -> NaloSolutions:
     """
     Create a Nalo Solutions client with explicit parameters or environment variables.
 
@@ -225,16 +225,16 @@ def create_nalo_client(
         sms_password: SMS API password
         sms_source: SMS sender ID
         sms_auth_key: SMS auth key (alternative to username/password)
-        **kwargs: Additional parameters passed to NaloSolutionsClient
+        **kwargs: Additional parameters passed to NaloSolutions
 
     Returns:
-        Configured NaloSolutionsClient instance
+        Configured NaloSolutions instance
     """
     # If no explicit credentials provided, try environment variables
     if not any([payment_username, sms_username, sms_auth_key]):
         return load_nalo_client_from_env()
 
-    return NaloSolutionsClient(
+    return NaloSolutions(
         payment_username=payment_username,
         payment_password=payment_password,
         merchant_id=merchant_id,
