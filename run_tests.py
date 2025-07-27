@@ -108,7 +108,7 @@ class TestRunner:
     def install_dev_dependencies(self) -> bool:
         """Install development dependencies."""
         return self.run_command(
-            ["python3", "-m", "pip", "install", "-r", "requirements-dev.txt"],
+            ["python3", "-m", self.pip_command, "install", "-r", "requirements-dev.txt"],
             "Installing Development Dependencies",
         )
 
