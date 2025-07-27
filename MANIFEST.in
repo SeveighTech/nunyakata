@@ -1,0 +1,11 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+recursive-include src/nunyakata *.py
+recursive-include tests *.py
+include pyproject.toml
+exclude debug_*.py
+exclude test_runner.py
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
