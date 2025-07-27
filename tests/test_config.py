@@ -1,14 +1,15 @@
 """Tests for Nunyakata configuration utilities."""
 
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from nunyakata.config import (
-    load_nalo_client_from_env,
-    get_env_config,
-    validate_env_config,
     create_nalo_client,
+    get_env_config,
+    load_nalo_client_from_env,
+    validate_env_config,
 )
 from nunyakata.services.nalo_solutions import NaloSolutions
 
@@ -75,18 +76,21 @@ class TestLoadNaloClientFromEnv:
     def test_load_client_no_credentials_error(self):
         """Test that ValueError is raised when no credentials are found."""
         with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(ValueError, match="No valid Nalo Solutions credentials found"):
+            with pytest.raises(
+                ValueError, match="No valid Nalo Solutions credentials found"
+            ):
                 load_nalo_client_from_env()
 
     def test_load_client_without_dotenv(self, monkeypatch):
         """Test loading client when dotenv is not available."""
+
         # Mock ImportError for dotenv by patching the import
         def mock_import(name, *args, **kwargs):
-            if name == 'dotenv':
+            if name == "dotenv":
                 raise ImportError("No module named 'dotenv'")
             return __import__(name, *args, **kwargs)
-        
-        with patch('builtins.__import__', side_effect=mock_import):
+
+        with patch("builtins.__import__", side_effect=mock_import):
             monkeypatch.setenv("NALO_SMS_USERNAME", "test_user")
             monkeypatch.setenv("NALO_SMS_PASSWORD", "test_pass")
 
@@ -193,7 +197,9 @@ class TestValidateEnvConfig:
         is_valid, missing = validate_env_config()
 
         assert is_valid is False
-        assert "NALO_SMS_AUTH_KEY or (NALO_SMS_USERNAME and NALO_SMS_PASSWORD)" in missing
+        assert (
+            "NALO_SMS_AUTH_KEY or (NALO_SMS_USERNAME and NALO_SMS_PASSWORD)" in missing
+        )
 
     def test_validate_config_partial_payment_credentials(self, monkeypatch):
         """Test validation with partial payment credentials."""
@@ -213,7 +219,10 @@ class TestValidateEnvConfig:
             is_valid, missing = validate_env_config()
 
             assert is_valid is False
-            assert "NALO_SMS_AUTH_KEY or (NALO_SMS_USERNAME and NALO_SMS_PASSWORD)" in missing
+            assert (
+                "NALO_SMS_AUTH_KEY or (NALO_SMS_USERNAME and NALO_SMS_PASSWORD)"
+                in missing
+            )
 
 
 class TestCreateNaloClient:
@@ -235,9 +244,7 @@ class TestCreateNaloClient:
 
     def test_create_client_with_sms_auth_key(self):
         """Test creating client with SMS auth key."""
-        client = create_nalo_client(
-            sms_auth_key="explicit_auth_key"
-        )
+        client = create_nalo_client(sms_auth_key="explicit_auth_key")
 
         assert isinstance(client, NaloSolutions)
         assert client.sms_auth_key == "explicit_auth_key"
@@ -253,7 +260,7 @@ class TestCreateNaloClient:
         assert client.sms_username == "test_user"
         assert client.sms_password == "test_pass"
 
-    @patch('nunyakata.config.load_nalo_client_from_env')
+    @patch("nunyakata.config.load_nalo_client_from_env")
     def test_create_client_fallback_to_env(self, mock_load_from_env, monkeypatch):
         """Test creating client falls back to environment when no params provided."""
         mock_client = MagicMock(spec=NaloSolutions)
@@ -265,7 +272,7 @@ class TestCreateNaloClient:
         mock_load_from_env.assert_called_once()
         assert client == mock_client
 
-    @patch('nunyakata.config.load_nalo_client_from_env')
+    @patch("nunyakata.config.load_nalo_client_from_env")
     def test_create_client_fallback_with_empty_params(self, mock_load_from_env):
         """Test creating client falls back to environment with None params."""
         mock_client = MagicMock(spec=NaloSolutions)
@@ -273,9 +280,7 @@ class TestCreateNaloClient:
 
         # Call with None values
         client = create_nalo_client(
-            payment_username=None,
-            sms_username=None,
-            sms_auth_key=None
+            payment_username=None, sms_username=None, sms_auth_key=None
         )
 
         mock_load_from_env.assert_called_once()
