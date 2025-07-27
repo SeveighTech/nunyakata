@@ -1,0 +1,49 @@
+# CODEOWNERS file for nunyakata
+# This file defines who owns different parts of the codebase
+# and who must review changes before they can be merged
+
+# Global fallback - repository maintainer(s)
+* @SeveighTech/nunyakata-maintainers
+
+# Core library code
+/src/nunyakata/ @SeveighTech/nunyakata-maintainers
+
+# Nalo Solutions implementation
+/src/nunyakata/services/nalo_solutions.py @SeveighTech/nunyakata-maintainers
+
+# Configuration and utilities
+/src/nunyakata/config.py @SeveighTech/nunyakata-maintainers
+
+# Tests - require review for test changes
+/tests/ @SeveighTech/nunyakata-maintainers
+
+# Documentation
+/docs/ @SeveighTech/nunyakata-maintainers
+/README.md @SeveighTech/nunyakata-maintainers
+/CHANGELOG.md @SeveighTech/nunyakata-maintainers
+
+# Project configuration files
+/pyproject.toml @SeveighTech/nunyakata-maintainers
+/requirements*.txt @SeveighTech/nunyakata-maintainers
+/Makefile @SeveighTech/nunyakata-maintainers
+
+# GitHub configuration and workflows
+/.github/ @SeveighTech/nunyakata-maintainers
+
+# Security and community files
+/SECURITY.md @SeveighTech/nunyakata-maintainers
+/CODE_OF_CONDUCT.md @SeveighTech/nunyakata-maintainers
+/CONTRIBUTING.md @SeveighTech/nunyakata-maintainers
+
+# Integration configurations
+/integrations.yaml @SeveighTech/nunyakata-maintainers
+
+# Examples and guides
+/examples/ @SeveighTech/nunyakata-maintainers
+/USSD_GUIDE.md @SeveighTech/nunyakata-maintainers
+/DEVELOPMENT.md @SeveighTech/nunyakata-maintainers
+
+# Release and deployment
+/release.py @SeveighTech/nunyakata-maintainers
+/.readthedocs.yaml @SeveighTech/nunyakata-maintainers
+/mkdocs.yml @SeveighTech/nunyakata-maintainers
