@@ -231,12 +231,18 @@ class TestRunner:
         """Run security scans."""
         success = True
 
-        # Install security tools if not present
-        subprocess.run(
-            ["python3", "-m", "pip", "install", "safety", "bandit[toml]"],
-            capture_output=True,
-        )
+        # Check and install security tools if not present
+        tools_to_install = []
+        if not self.is_tool_installed("safety"):
+            tools_to_install.append("safety")
+        if not self.is_tool_installed("bandit"):
+            tools_to_install.append("bandit[toml]")
 
+        if tools_to_install:
+            subprocess.run(
+                ["python3", "-m", "pip", "install"] + tools_to_install,
+                capture_output=True,
+            )
         # Bandit security check
         self.run_command(
             [
