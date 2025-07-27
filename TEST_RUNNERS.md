@@ -5,6 +5,7 @@ This directory contains convenient test runner scripts to validate your code qui
 ## Usage Options
 
 ### 1. Python Test Runner (Detailed)
+
 ```bash
 # Run all tests and checks (comprehensive)
 python3 run_tests.py
@@ -26,6 +27,7 @@ python3 run_tests.py --help
 ```
 
 ### 2. Shell Script Wrapper (Simple)
+
 ```bash
 # Run all tests (equivalent to python3 run_tests.py)
 ./test.sh
@@ -37,6 +39,7 @@ python3 run_tests.py --help
 ```
 
 ### 3. Individual Commands (Manual)
+
 ```bash
 # Code formatting and linting
 python3 -m black --check src/ tests/
@@ -58,6 +61,7 @@ python3 -m build
 ## What Each Test Runner Includes
 
 ### Full Test Suite (`python3 run_tests.py`)
+
 1. **Dependency Check** - Ensures Python 3 and pip are available
 2. **Install Dependencies** - Updates development dependencies
 3. **Code Formatting** - Black and isort checks
@@ -70,19 +74,25 @@ python3 -m build
 10. **Documentation** - Build docs if MkDocs config exists
 
 ### Fast Mode (`--fast`)
+
 Skips slower checks:
+
 - Security scans
-- Package building  
+- Package building
 - Documentation building
 
 ### Coverage Only (`--coverage`)
+
 Runs only:
+
 - Dependency check
-- Install dependencies  
+- Install dependencies
 - Unit tests with coverage
 
 ### Lint Only (`--lint`)
+
 Runs only:
+
 - Dependency check
 - Install dependencies
 - Code formatting checks
@@ -103,7 +113,7 @@ Runs only:
 # Quick development check (2-3 seconds)
 python3 run_tests.py --lint
 
-# Fast validation before commit (10-15 seconds)  
+# Fast validation before commit (10-15 seconds)
 python3 run_tests.py --fast
 
 # Full CI/CD simulation (30-60 seconds)
