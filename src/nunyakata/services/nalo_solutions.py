@@ -216,9 +216,9 @@ class NaloSolutions:
             )
 
         # Generate random 4-digit key
-        import random
+        import secrets
 
-        key = f"{random.randint(1000, 9999)}"
+        key = f"{secrets.randbelow(9000) + 1000}"
 
         # Generate secret according to API docs: md5(username + key + md5(password))
         password_hash = hashlib.md5(self.payment_password.encode()).hexdigest()
