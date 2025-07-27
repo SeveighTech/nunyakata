@@ -19,6 +19,7 @@ help:
 	@echo "  test-unit        Run unit tests only"
 	@echo "  test-integration Run integration tests only"
 	@echo "  test-fast        Run tests without coverage"
+	@echo "  test-core        Run core API tests only"
 	@echo "  security         Run security checks"
 	@echo ""
 	@echo "Building:"
@@ -64,6 +65,9 @@ type-check:
 
 # Testing commands
 test:
+	pytest tests/test_basic_import.py tests/test_nalo_payments.py tests/test_nalo_sms.py tests/test_nalo_ussd.py tests/test_nalo_email.py -v --cov=src/nunyakata --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=70
+
+test-all:
 	pytest tests/ -v --cov=src/nunyakata --cov-report=term-missing --cov-report=html --cov-report=xml
 
 test-unit:
@@ -73,7 +77,10 @@ test-integration:
 	pytest tests/ -v -m "integration"
 
 test-fast:
-	pytest tests/ -v
+	pytest tests/test_basic_import.py tests/test_nalo_payments.py tests/test_nalo_sms.py tests/test_nalo_ussd.py tests/test_nalo_email.py -v
+
+test-core:
+	pytest tests/test_basic_import.py tests/test_nalo_payments.py tests/test_nalo_sms.py tests/test_nalo_ussd.py tests/test_nalo_email.py -v
 
 security:
 	bandit -r src -f json || true
@@ -115,6 +122,7 @@ dev-setup:
 	@echo "✅ Development environment setup complete!"
 	@echo "👉 Run 'source .venv/bin/activate' to activate the virtual environment."
 	@echo "👉 Then run 'make test' to verify everything works."
+
 # Quick test for development
 quick-test:
 	pytest tests/test_client.py -v
@@ -134,7 +142,7 @@ test-email:
 
 # Coverage report
 coverage:
-	pytest tests/ --cov=src/nunyakata --cov-report=html
+	pytest tests/test_basic_import.py tests/test_nalo_payments.py tests/test_nalo_sms.py tests/test_nalo_ussd.py tests/test_nalo_email.py --cov=src/nunyakata --cov-report=html
 	@echo "Coverage report generated in htmlcov/index.html"
 
 # Performance testing
@@ -145,63 +153,3 @@ perf-test:
 update-deps:
 	pip install --upgrade pip
 	pip install -e ".[dev,test,webhook]" --upgrade
-
-## Run tests
-test:
-	pytest
-
-## Run tests with coverage
-test-cov:
-	pytest --cov=nunyakata --cov-report=html --cov-report=term-missing
-
-## Format code
-format:
-	black src/ tests/
-	isort src/ tests/
-
-## Lint code
-lint:
-	flake8 src/ tests/
-	mypy src/
-
-## Type check
-typecheck:
-	mypy src/
-
-## Clean build artifacts
-clean:
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info/
-	rm -rf .pytest_cache/
-	rm -rf htmlcov/
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
-
-## Build package
-build:
-	python -m build
-
-## Upload to PyPI (production)
-upload:
-	python -m twine upload dist/*
-
-## Upload to Test PyPI
-upload-test:
-	python -m twine upload --repository testpypi dist/*
-
-## Help
-help:
-	@echo "Available commands:"
-	@echo "  install-dev  - Install package in development mode"
-	@echo "  test         - Run tests"
-	@echo "  test-cov     - Run tests with coverage"
-	@echo "  format       - Format code with black and isort"
-	@echo "  lint         - Lint code with flake8 and mypy"
-	@echo "  typecheck    - Run type checking with mypy"
-	@echo "  clean        - Clean build artifacts"
-	@echo "  build        - Build package"
-	@echo "  upload       - Upload to PyPI"
-	@echo "  upload-test  - Upload to Test PyPI"
-
-.PHONY: install-dev test test-cov format lint typecheck clean build upload upload-test help
