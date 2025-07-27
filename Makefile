@@ -1,4 +1,4 @@
-.PHONY: help install clean test test-unit test-integration lint format type-check security build publish-test publish docs
+.PHONY: help install clean test test-unit test-integration lint format type-check security build publish-test publish docs test-runner test-runner-fast test-runner-lint test-runner-coverage test-all test-validate test-quality pre-commit pre-push
 
 # Default target
 help:
@@ -20,6 +20,10 @@ help:
 	@echo "  test-integration Run integration tests only"
 	@echo "  test-fast        Run tests without coverage"
 	@echo "  test-core        Run core API tests only"
+	@echo "  test-all         Run comprehensive test suite (using test runner)"
+	@echo "  test-runner      Run Python test runner (all checks)"
+	@echo "  test-runner-fast Run Python test runner (fast mode)"
+	@echo "  test-runner-lint Run Python test runner (lint only)"
 	@echo "  security         Run security checks"
 	@echo ""
 	@echo "Building:"
@@ -153,3 +157,32 @@ perf-test:
 update-deps:
 	pip install --upgrade pip
 	pip install -e ".[dev,test,webhook]" --upgrade
+
+# Test runner commands (using our comprehensive test runner)
+test-runner:
+	@echo "🧪 Running comprehensive test suite with test runner..."
+	python3 run_tests.py
+
+test-runner-fast:
+	@echo "⚡ Running fast validation with test runner..."
+	python3 run_tests.py --fast
+
+test-runner-lint:
+	@echo "🔍 Running lint checks with test runner..."
+	python3 run_tests.py --lint
+
+test-runner-coverage:
+	@echo "📊 Running coverage tests with test runner..."
+	python3 run_tests.py --coverage
+
+# Convenience aliases for test runner
+test-all: test-runner
+test-validate: test-runner-fast
+test-quality: test-runner-lint
+
+# Pre-commit and pre-push hooks
+pre-commit: format test-runner-fast
+	@echo "🎉 Ready for commit!"
+
+pre-push: format test-runner
+	@echo "🚀 Ready for push!"
