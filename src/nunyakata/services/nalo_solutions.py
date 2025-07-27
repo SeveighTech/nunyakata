@@ -286,10 +286,10 @@ class NaloSolutions:
                 "Payment credentials (merchant_id, username, password) must be provided"
             )
 
-        # Generate random 4-digit key
+        # Generate random 4-digit key (1000-9999 range as required by Nalo API)
         import secrets
 
-        key = f"{secrets.randbelow(9000) + 1000}"
+        key = f"{secrets.randbelow(9000) + 1000}"  # 9000 possible values (0-8999) + 1000 = 1000-9999
 
         # Generate secret according to API docs: md5(username + key + md5(password))
         password_hash = hashlib.md5(self.payment_password.encode()).hexdigest()
@@ -994,6 +994,7 @@ class NaloSolutions:
             )
         finally:
             files.clear()
+
     def send_html_email(
         self,
         to_email: Union[str, List[str]],

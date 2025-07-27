@@ -5,9 +5,27 @@ import requests
 
 from nunyakata.services.nalo_solutions import NaloSolutions
 
+# Constants for mock responses
+MOCK_GET_SMS_RESPONSE = "1701|233501234567|api.0039013.20250127.1753576627.8301058"
+MOCK_POST_SMS_RESPONSE = '{"status": "1701", "job_id": "api.0000011.20221222.0000003", "msisdn": "233244071872"}'
+
+# Test phone numbers
+TEST_PHONE_NUMBER = "233501234567"
+TEST_PHONE_NUMBERS_BULK = ["233501234567", "233241234567", "233271234567"]
+
 
 class TestNaloSMSAPI:
     """Test suite for Nalo SMS API."""
+
+    @pytest.fixture
+    def mock_get_sms_response(self):
+        """Mock GET SMS response string."""
+        return MOCK_GET_SMS_RESPONSE
+
+    @pytest.fixture
+    def mock_post_sms_response(self):
+        """Mock POST SMS response string."""
+        return MOCK_POST_SMS_RESPONSE
 
     @pytest.fixture
     def nalo_config(self):
@@ -56,17 +74,17 @@ class TestNaloSMSAPI:
         }
 
     def test_send_sms_get_method_success(
-        self, nalo_client, mock_requests, sms_success_response
+        self, nalo_client, mock_requests, sms_success_response, mock_get_sms_response
     ):
         """Test successful SMS sending using GET method."""
         # Mock the raw response format for GET method
         mock_requests.get(
             "https://sms.nalosolutions.com/smsbackend/clientapi/Resl_Nalo/send-message",
-            text="1701|233501234567|api.0039013.20250127.1753576627.8301058",
+            text=mock_get_sms_response,
         )
 
         result = nalo_client.send_sms(
-            phone_number="233501234567", message="Test SMS message", method="GET"
+            phone_number=TEST_PHONE_NUMBER, message="Test SMS message", method="GET"
         )
 
         assert result["status"] == "success"
@@ -74,17 +92,17 @@ class TestNaloSMSAPI:
         assert "message_id" in result
 
     def test_send_sms_post_method_success(
-        self, nalo_client, mock_requests, sms_success_response
+        self, nalo_client, mock_requests, sms_success_response, mock_post_sms_response
     ):
         """Test successful SMS sending using POST method."""
         # Mock the JSON response format for POST method
         mock_requests.post(
             "https://sms.nalosolutions.com/smsbackend/Resl_Nalo/send-message/",
-            text='{"status": "1701", "job_id": "api.0000011.20221222.0000003", "msisdn": "233244071872"}',
+            text=mock_post_sms_response,
         )
 
         result = nalo_client.send_sms(
-            phone_number="233501234567", message="Test SMS message", method="POST"
+            phone_number=TEST_PHONE_NUMBER, message="Test SMS message", method="POST"
         )
 
         assert result["status"] == "success"
@@ -92,7 +110,11 @@ class TestNaloSMSAPI:
         assert "message_id" in result
 
     def test_send_sms_with_auth_key(
-        self, nalo_client_with_auth_key, mock_requests, sms_success_response
+        self,
+        nalo_client_with_auth_key,
+        mock_requests,
+        sms_success_response,
+        mock_get_sms_response,
     ):
         """Test SMS sending with auth key instead of username/password."""
         # Configure client to use auth key only
@@ -103,11 +125,13 @@ class TestNaloSMSAPI:
 
         mock_requests.get(
             "https://sms.nalosolutions.com/smsbackend/clientapi/Resl_Nalo/send-message",
-            text="1701|233501234567|api.0039013.20250127.1753576627.8301058",
+            text=mock_get_sms_response,
         )
 
         result = client.send_sms(
-            phone_number="233501234567", message="Test SMS with auth key", method="GET"
+            phone_number=TEST_PHONE_NUMBER,
+            message="Test SMS with auth key",
+            method="GET",
         )
 
         assert result["status"] == "success"
@@ -133,15 +157,15 @@ class TestNaloSMSAPI:
         # Test message too long
         long_message = "x" * 1001  # 1001 characters
         with pytest.raises(ValueError, match="Message is too long"):
-            nalo_client.send_sms(phone_number="233501234567", message=long_message)
+            nalo_client.send_sms(phone_number=TEST_PHONE_NUMBER, message=long_message)
 
     def test_send_sms_phone_number_formatting(
-        self, nalo_client, mock_requests, sms_success_response
+        self, nalo_client, mock_requests, sms_success_response, mock_get_sms_response
     ):
         """Test phone number formatting for SMS."""
         mock_requests.get(
             "https://sms.nalosolutions.com/smsbackend/clientapi/Resl_Nalo/send-message",
-            text="1701|233501234567|api.0039013.20250127.1753576627.8301058",
+            text=mock_get_sms_response,
         )
 
         # Test various phone number formats
@@ -158,30 +182,32 @@ class TestNaloSMSAPI:
             assert result["status"] == "success"
 
     def test_send_sms_unicode_message(
-        self, nalo_client, mock_requests, sms_success_response
+        self, nalo_client, mock_requests, sms_success_response, mock_get_sms_response
     ):
         """Test SMS with unicode characters."""
         mock_requests.get(
             "https://sms.nalosolutions.com/smsbackend/clientapi/Resl_Nalo/send-message",
-            text="1701|233501234567|api.0039013.20250127.1753576627.8301058",
+            text=mock_get_sms_response,
         )
 
         unicode_message = "Hello! 🇬🇭 Welcome to Ghana"
 
         result = nalo_client.send_sms(
-            phone_number="233501234567", message=unicode_message
+            phone_number=TEST_PHONE_NUMBER, message=unicode_message
         )
 
         assert result["status"] == "success"
 
-    def test_send_bulk_sms(self, nalo_client, mock_requests, sms_success_response):
+    def test_send_bulk_sms(
+        self, nalo_client, mock_requests, sms_success_response, mock_get_sms_response
+    ):
         """Test sending bulk SMS messages."""
         mock_requests.get(
             "https://sms.nalosolutions.com/smsbackend/clientapi/Resl_Nalo/send-message",
-            text="1701|233501234567|api.0039013.20250127.1753576627.8301058",
+            text=mock_get_sms_response,
         )
 
-        phone_numbers = ["233501234567", "233241234567", "233271234567"]
+        phone_numbers = TEST_PHONE_NUMBERS_BULK
         message = "Bulk SMS test message"
 
         # Test sending to multiple numbers
@@ -190,16 +216,16 @@ class TestNaloSMSAPI:
             assert result["status"] == "success"
 
     def test_send_sms_with_custom_sender_id(
-        self, nalo_client, mock_requests, sms_success_response
+        self, nalo_client, mock_requests, sms_success_response, mock_get_sms_response
     ):
         """Test SMS with custom sender ID."""
         mock_requests.get(
             "https://sms.nalosolutions.com/smsbackend/clientapi/Resl_Nalo/send-message",
-            text="1701|233501234567|api.0039013.20250127.1753576627.8301058",
+            text=mock_get_sms_response,
         )
 
         result = nalo_client.send_sms(
-            phone_number="233501234567",
+            phone_number=TEST_PHONE_NUMBER,
             message="Test with custom sender",
             sender_id="CUSTOM_ID",
         )
@@ -216,7 +242,7 @@ class TestNaloSMSAPI:
         )
 
         result = nalo_client.send_sms(
-            phone_number="233501234567", message="Timeout test message"
+            phone_number=TEST_PHONE_NUMBER, message="Timeout test message"
         )
 
         assert result["status"] == "error"
@@ -232,7 +258,7 @@ class TestNaloSMSAPI:
         )
 
         result = nalo_client.send_sms(
-            phone_number="233501234567", message="Network error test message"
+            phone_number=TEST_PHONE_NUMBER, message="Network error test message"
         )
 
         assert result["status"] == "error"
@@ -253,4 +279,4 @@ class TestNaloSMSAPI:
         with pytest.raises(
             ValueError, match="Authentication credentials must be provided"
         ):
-            client.send_sms(phone_number="233501234567", message="Test message")
+            client.send_sms(phone_number=TEST_PHONE_NUMBER, message="Test message")
