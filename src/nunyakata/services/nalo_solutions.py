@@ -167,7 +167,11 @@ class NaloSolutions:
             })
         """
         if not isinstance(network_mappings, dict):
-            raise ValueError("network_mappings must be a dictionary")
+            raise ValueError(
+                "network_mappings must be a dictionary where keys are network names (strings) "
+                "and values are lists of prefixes (strings). Example: "
+                '{"MTN": ["233024", "233054"], "VODAFONE": ["233020", "233050"]}'
+            )
 
         for network, prefixes in network_mappings.items():
             if not isinstance(prefixes, list):
