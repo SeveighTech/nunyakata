@@ -69,8 +69,12 @@ all = [
 
 [project.urls]
 Homepage = "https://github.com/SeveighTech/nunyakata"
+Documentation = "https://nunyakata.readthedocs.io/"
 Repository = "https://github.com/SeveighTech/nunyakata"
-Issues = "https://github.com/SeveighTech/nunyakata/issues"
+"Bug Reports" = "https://github.com/SeveighTech/nunyakata/issues"
+"Source Code" = "https://github.com/SeveighTech/nunyakata"
+Changelog = "https://nunyakata.readthedocs.io/en/latest/changelog/"
+"Read the Docs" = "https://nunyakata.readthedocs.io/"
 
 [tool.hatch.version]
 path = "src/nunyakata/__init__.py"

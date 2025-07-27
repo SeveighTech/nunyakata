@@ -1,0 +1,93 @@
+site_name: Nunyakata - Ghana's API Integration Library
+site_description: A unified Python library for integrating with Ghanaian service APIs
+site_author: Joseph
+site_url: https://nunyakata.readthedocs.io/
+repo_url: https://github.com/SeveighTech/nunyakata
+repo_name: SeveighTech/nunyakata
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: green
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: green
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - navigation.tracking
+    - navigation.indexes
+  icon:
+    repo: fontawesome/brands/github
+  logo: https://raw.githubusercontent.com/SeveighTech/nunyakata/main/docs/assets/logo.png
+  favicon: https://raw.githubusercontent.com/SeveighTech/nunyakata/main/docs/assets/favicon.ico
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Configuration: getting-started/configuration.md
+  - Services:
+    - Nalo Solutions: services/nalo-solutions.md
+    - Payment APIs: services/payments.md
+    - SMS APIs: services/sms.md
+    - Email APIs: services/email.md
+    - USSD APIs: services/ussd.md
+  - API Reference:
+    - Client Classes: api/clients.md
+    - Configuration: api/config.md
+    - Exceptions: api/exceptions.md
+  - Examples:
+    - Payment Integration: examples/payments.md
+    - SMS Integration: examples/sms.md
+    - USSD Integration: examples/ussd.md
+    - Email Integration: examples/email.md
+  - Contributing:
+    - Development Setup: contributing/setup.md
+    - Adding Integrations: contributing/integrations.md
+    - Testing: contributing/testing.md
+  - Changelog: changelog.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_root_heading: true
+            show_root_toc_entry: false
+            merge_init_into_class: true
+            show_signature_annotations: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago

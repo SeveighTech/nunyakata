@@ -1,0 +1,390 @@
+- name: Nalo Solutions
+  labels: ["Payments", "Fintech", "SMS", "USSD", "Email"]
+  api_available: true
+  api_documentation_url: "https://nunyakata.readthedocs.io/en/latest/services/nalo-solutions/"
+  status: completed
+
+- name: appsNmobile
+  labels: ["Payments", "Fintech"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Kowri
+  labels: ["Payments", "Fintech"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Hubtel
+  labels: ["Payments", "Fintech"]
+  api_available: true
+  api_documentation_url: "https://developers.hubtel.com/"
+
+- name: ExpressPay
+  labels: ["Payments", "Fintech"]
+  api_available: true
+  api_documentation_url: "https://developer.expresspaygh.com/"
+
+- name: PaySwitch
+  labels: ["Payments", "Fintech"]
+  api_available: true
+  api_documentation_url: "https://docs.payswitch.com.gh/"
+
+- name: IT Consortium (UniWallet, TransFlow, eAnidaso)
+  labels: ["Payments", "Fintech"]
+  api_available: true
+  api_documentation_url: "https://api.itconsortiumgh.com"
+
+- name: Slydepay (DreamOval)
+  labels: ["Payments", "Fintech"]
+  api_available: true
+  api_documentation_url: "https://dreamoval.dev"
+
+- name: MTN Ghana
+  labels: ["Telecom", "USSD", "Payments"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Vodafone Ghana
+  labels: ["Telecom", "USSD", "Payments"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: AirtelTigo Ghana
+  labels: ["Telecom", "USSD", "Payments"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Zeepay
+  labels: ["Payments", "Fintech"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: GhiPSS
+  labels: ["Payments", "Banking"]
+  api_available: true
+  api_documentation_url: "https://ghipss.com"
+
+- name: Flutterwave
+  labels: ["Payments", "Fintech"]
+  api_available: true
+  api_documentation_url: "https://developer.flutterwave.com"
+
+- name: Paystack
+  labels: ["Payments", "Fintech"]
+  api_available: true
+  api_documentation_url: "https://paystack.com/docs"
+
+- name: Africa's Talking (Ghana)
+  labels: ["SMS", "USSD", "Communication"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Infobip
+  labels: ["SMS", "USSD", "Communication"]
+  api_available: true
+  api_documentation_url: "https://www.infobip.com/docs"
+
+- name: Vonage/Nexmo
+  labels: ["SMS", "USSD", "Communication"]
+  api_available: true
+  api_documentation_url: "https://developer.vonage.com"
+
+- name: Twilio
+  labels: ["SMS", "USSD", "Communication"]
+  api_available: true
+  api_documentation_url: "https://www.twilio.com/docs"
+
+- name: GhanaWeb
+  labels: ["Media", "News", "Platform"]
+  api_available: true
+  api_documentation_url: ""
+
+- name: Pulse Ghana
+  labels: ["Media", "News", "Platform"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: JoyOnline/Multimedia Group
+  labels: ["Media", "News", "Platform"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Graphic Online
+  labels: ["Media", "News", "Platform"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Citi FM/Citi TV
+  labels: ["Media", "News", "Platform"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Fido
+  labels: ["Payments", "Fintech"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Bloom Impact
+  labels: ["Payments", "Fintech"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Carbon Ghana
+  labels: ["Payments", "Fintech"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Tendo
+  labels: ["Payments", "Fintech"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Izwe Loans
+  labels: ["Payments", "Fintech"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Onfon Media
+  labels: ["SMS", "USSD", "Communication"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: MSGHUB
+  labels: ["SMS", "USSD", "Communication"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Telerivet
+  labels: ["SMS", "USSD", "Communication"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Fidelity Bank Ghana
+  labels: ["Banking", "Credit Bureaus"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: GCB Bank
+  labels: ["Banking", "Credit Bureaus"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: CalBank
+  labels: ["Banking", "Credit Bureaus"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Ecobank Ghana
+  labels: ["Banking", "Credit Bureaus"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: UBA Ghana
+  labels: ["Banking", "Credit Bureaus"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: XDS Data Ghana
+  labels: ["Banking", "Credit Bureaus"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Huduma
+  labels: ["Banking", "Credit Bureaus"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Credit Reference Bureau (BoG)
+  labels: ["Banking", "Credit Bureaus"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Electricity Company of Ghana (ECG)
+  labels: ["Utilities", "Telecom"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Ghana Water Company Limited (GWCL)
+  labels: ["Utilities", "Telecom"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: National Communications Authority (NCA)
+  labels: ["Utilities", "Telecom"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Busy Ghana
+  labels: ["Utilities", "Telecom"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Surfline
+  labels: ["Utilities", "Telecom"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: MainOne Ghana
+  labels: ["Utilities", "Telecom"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: CSquared Ghana
+  labels: ["Utilities", "Telecom"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: MTN Fiber Broadband
+  labels: ["Utilities", "Telecom"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Ghana.Gov
+  labels: ["Government Services"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Ghana Revenue Authority (GRA)
+  labels: ["Government Services"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: National Identification Authority (NIA)
+  labels: ["Government Services"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: SSNIT
+  labels: ["Government Services"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: NHIS
+  labels: ["Government Services"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Ghana Immigration Service
+  labels: ["Government Services"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: GACL (Ghana Airports Company Limited)
+  labels: ["Government Services"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Ministry of Food and Agriculture (MOFA)
+  labels: ["Government Services"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: EPA Ghana
+  labels: ["Government Services"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Smile Identity
+  labels: ["Identity Verification", "KYC"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Youverify
+  labels: ["Identity Verification", "KYC"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Vio Identity
+  labels: ["Identity Verification", "KYC"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: GhanaPost GPS
+  labels: ["Address", "Location"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Ghana Post
+  labels: ["Address", "Location"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Yenko
+  labels: ["Logistics", "Transport"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Jetstream Africa
+  labels: ["Logistics", "Transport"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Swiftly
+  labels: ["Logistics", "Transport"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Oasis Africa Logistics
+  labels: ["Logistics", "Transport"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Tonaton
+  labels: ["E-commerce", "Marketplaces"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Jumia Ghana
+  labels: ["E-commerce", "Marketplaces"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Plendify
+  labels: ["E-commerce", "Marketplaces"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: WAEC Ghana
+  labels: ["Education", "EdTech"]
+  api_available: true
+  api_documentation_url: ""
+
+- name: Ghana Education Service (GES)
+  labels: ["Education", "EdTech"]
+  api_available: true
+  api_documentation_url: ""
+
+- name: eCampus
+  labels: ["Education", "EdTech"]
+  api_available: true
+  api_documentation_url: ""
+
+- name: uLesson
+  labels: ["Education", "EdTech"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: Jobberman Ghana
+  labels: ["Jobs", "Skills Platforms"]
+  api_available: true
+  api_documentation_url: ""
+
+- name: TalentsInAfrica
+  labels: ["Jobs", "Skills Platforms"]
+  api_available: true
+  api_documentation_url: ""
+
+- name: AfricanJobs
+  labels: ["Jobs", "Skills Platforms"]
+  api_available: false
+  api_documentation_url: ""
+
+- name: mPharma
+  labels: ["HealthTech"]
+  api_available: true
+  api_documentation_url: ""
+
+- name: Zipline Ghana
+  labels: ["HealthTech"]
+  api_available: true
+  api_documentation_url: ""

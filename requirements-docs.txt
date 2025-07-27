@@ -1,0 +1,14 @@
+# Documentation dependencies for Read the Docs
+mkdocs>=1.5.3
+mkdocs-material>=9.4.0
+mkdocstrings[python]>=0.24.0
+mkdocs-git-revision-date-localized-plugin>=1.2.2
+
+# Enhanced features
+pymdown-extensions>=10.3.0
+markdown-callouts>=0.3.0
+mkdocs-awesome-pages-plugin>=2.9.2
+
+# Python dependencies needed for mkdocstrings to work
+requests>=2.25.0
+pydantic>=2.0.0
