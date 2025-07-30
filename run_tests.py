@@ -74,6 +74,18 @@ class TestRunner:
             self.failed_checks.append(f"{description} (error)")
             return False
 
+    def is_tool_installed(self, tool_name: str) -> bool:
+        """Check if a Python tool is installed."""
+        try:
+            subprocess.run(
+                ["python3", "-m", tool_name, "--version"],
+                capture_output=True,
+                check=True,
+            )
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return False
+
     def check_dependencies(self) -> bool:
         """Check if all required dependencies are installed."""
         print(f"{Colors.HEADER}🔍 Checking Dependencies{Colors.ENDC}")
