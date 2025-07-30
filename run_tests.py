@@ -88,7 +88,7 @@ class TestRunner:
 
         # Check pip (try both pip and pip3)
         self.pip_command = None
-        for pip_cmd in ["pip3", "pip"]:
+        for pip_cmd in ["pip", "pip3"]:
             try:
                 subprocess.run([pip_cmd, "--version"], capture_output=True, check=True)
                 print(
